@@ -18,7 +18,8 @@ Engineered with **Node.js, Express, and Better-SQLite3**, it completely removes 
 - [Web Admin Control Panel Tour](#-web-admin-control-panel-tour)
 - [SQLite Database Architecture & Server Migration](#-sqlite-database-architecture--server-migration)
 - [Prerequisites](#-prerequisites)
-- [Quick Start Installation](#-quick-start-installation)
+- [⚡ Universal 1-Click Automated Setup Script (`setup.sh`)](#-universal-1-click-automated-setup-script-setupsh)
+- [Manual Quick Start Installation](#-manual-quick-start-installation)
 - [First-Run Setup Wizard](#-first-run-setup-wizard)
 - [Web Server & Reverse Proxy Configurations](#-web-server--reverse-proxy-configurations)
   - [Option 1: Nginx (Recommended)](#option-1-nginx-recommended)
@@ -208,6 +209,12 @@ The Admin Control Panel allows the project owner to manage every aspect of the e
 - **Masternodes Toggle:** Enable or disable the Masternodes tab (and rename the label to "Smartnodes", "Masternodes", or any custom name).
 - **Default Chart Timeframe:** Set the initial chart view to 7D, 15D, or 30D.
 
+### 9. System Updates & 1-Click GitHub Sync
+- **Live GitHub Update Detection:** The explorer checks the official GitHub repository (`gamgsp/global-crypto-explorer`) asynchronously in the background with intelligent 5-minute caching.
+- **Visual Notification Badges:** When a new commit or release is published on GitHub, a prominent `UPDATE` badge appears in the admin sidebar navigation and a global announcement banner appears across all settings tabs displaying the commit SHA, commit message, author, and timestamp.
+- **Dedicated System & Updates Tab (`/:slug?tab=updates`):** Inspect your installed commit SHA against the remote commit SHA, commit author, and build date.
+- **1-Click Seamless Upgrade:** Clicking **"Update App from GitHub Now"** opens an interactive terminal log that executes `git fetch origin main && git reset --hard origin/main && npm install --omit=dev`, and gracefully restarts the `global-crypto-explorer.service` with automated reconnection.
+
 ---
 
 ## 💾 SQLite Database Architecture & Server Migration
@@ -271,7 +278,136 @@ Once restored, start the explorer. All your admin settings, custom styling, addr
 
 ---
 
-## 🚀 Quick Start Installation
+## ⚡ Universal 1-Click Automated Setup Script (`setup.sh`)
+
+Global Crypto Explorer includes a fully automated, interactive, and unattended-capable installation script (`setup.sh`) designed for fresh Linux servers (**Ubuntu 20.04/22.04/24.04, Debian 11/12, CentOS/RHEL/AlmaLinux/Rocky 8/9**).
+
+It handles **everything from A to Z** in a single execution:
+1. Allocates 4GB swap memory if RAM is limited.
+2. Installs Node.js v20 LTS, Git, build tools, UFW firewall, and Certbot.
+3. Automatically asks an interactive questionnaire for Domain, Web Server, SSL, and Coin Daemon.
+4. Automatically downloads, configures, and launches your **Crypto Coin Daemon** (`coind`) as a systemd service.
+5. Configures your chosen reverse proxy (**Nginx**, **Apache2**, **Caddy**, or **Standalone Node.js**).
+6. Issues free **Let's Encrypt SSL certificates** with automated auto-renewal.
+7. Deploys Global Crypto Explorer, sets up `.env`, starts `global-crypto-explorer.service`, and executes firewall port validations.
+
+---
+
+### 🚀 Running the Automated Setup Script
+
+#### Option A: One-Command Installation (Direct via cURL)
+Run this single command on your clean server terminal:
+```bash
+curl -sSL https://raw.githubusercontent.com/gamgsp/global-crypto-explorer/main/setup.sh | sudo bash
+```
+
+#### Option B: From Cloned Repository
+If you have already cloned the repository:
+```bash
+git clone https://github.com/gamgsp/global-crypto-explorer.git
+cd global-crypto-explorer
+sudo chmod +x setup.sh
+sudo ./setup.sh
+```
+
+---
+
+### 📋 Interactive Questionnaire & Automation Guide
+
+The script will walk you through the following questionnaire:
+
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                 CRYPTO BLOCKCHAIN EXPLORER                                ║
+║            Universal Automated Deployment Engine                          ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+#### Step 1: System Memory & Swap Allocation
+- Checks current physical RAM and swap space.
+- If swap is under 2GB, the script automatically provisions and mounts a **4GB `/swapfile`** with `vm.swappiness=20` to guarantee uninterrupted block indexing and Node.js dependency compilation.
+
+#### Step 2: Domain & Application Port
+- **Domain Name:** Enter your fully qualified domain (e.g. `explorer.gspcoin.us`) or server IP.
+- **Node.js Port:** Enter internal port for the Node.js application (default: `3001`).
+
+#### Step 3: Web Server & Reverse Proxy Selection
+Choose your preferred web server stack:
+- **`1) Nginx` (Recommended):** High-speed reverse proxy with WebSocket upgrade headers, gzip compression, and client body limits.
+- **`2) Apache2`:** Configures `mod_proxy`, `mod_proxy_http`, `mod_ssl`, and `mod_rewrite` virtual host.
+- **`3) Caddy`:** Ultra-lightweight reverse proxy with automatic native HTTPS.
+- **`4) Standalone Node.js`:** Direct Node.js execution without a reverse proxy.
+
+#### Step 4: SSL / HTTPS Encryption
+- **`1) Let's Encrypt Free SSL` (Recommended):** Prompts for an administrator email and automatically provisions trusted SSL certificates with automated systemd renewal timers.
+- **`2) Custom SSL Certificates`:** Prompts for paths to your custom `.crt` and `.key` files.
+- **`3) No SSL / HTTP Only`:** For environments running behind Cloudflare Flexible SSL, reverse proxies, or local testing.
+
+#### Step 5: Firewall & Port Verification
+- Opens **Port 22 (SSH)** to prevent lockout.
+- Opens **Port 80 (HTTP)** and **Port 443 (HTTPS)** for web access.
+- Validates that the internal **Coin Daemon RPC Port is blocked from external internet access** (binding strictly to `127.0.0.1` for maximum security).
+- Optionally opens the Coin P2P gossip port for public peer syncing.
+
+#### Step 6: Crypto Coin Daemon Setup Questionnaire
+The installer prompts:
+> **`Do you want this autoscript to setup & configure your Coin Daemon too? (y/n)`**
+
+- **If YES:**
+  1. **Coin Name & Symbol:** e.g., `GSPCoin` and `GSPC`.
+  2. **Daemon & CLI Binary Names:** e.g., `gspcoind` and `gspcoin-cli`.
+  3. **P2P & RPC Ports:** Default P2P and RPC ports (e.g. `18181` and `18182`).
+  4. **Auto-Generated RPC Credentials:** Generates a cryptographically random 32-character RPC username and password.
+  5. **Binary Source:**
+     - *Download from GitHub / URL:* Downloads archive (`.tar.gz`, `.zip`) or binary, extracts, and installs to `/usr/local/bin/`.
+     - *Local file path:* Copies existing compiled binaries from your server.
+     - *Already installed:* Uses existing binaries in `/usr/local/bin`.
+  6. **Automated `<coin>.conf` Creation:** Generates the configuration with all required indexing flags:
+     ```ini
+     server=1
+     daemon=1
+     listen=1
+     txindex=1
+     addressindex=1
+     spentindex=1
+     timestampindex=1
+     rpcuser=gspcrpc
+     rpcpassword=GEN_SECURE_PASSWORD
+     rpcallowip=127.0.0.1
+     rpcport=18182
+     port=18181
+     maxconnections=64
+     ```
+  7. **Systemd Service Setup:** Creates and enables `/etc/systemd/system/<coin>d.service`, then starts the daemon in the background.
+
+- **If NO:**
+  - Enter your existing Daemon RPC Host (`127.0.0.1`), RPC Port, RPC Username, and RPC Password.
+
+#### Step 7: Global Crypto Explorer Deployment & Systemd Service
+- Clones repository or uses current directory.
+- Runs `npm install --omit=dev`.
+- Generates a hardened `.env` file containing RPC credentials and a cryptographically generated `SESSION_SECRET`.
+- Creates, enables, and starts `/etc/systemd/system/global-crypto-explorer.service`.
+
+#### Step 8: Completion Summary
+Upon completion, the installer prints the live URL, first-time admin setup link, RPC parameters, and helpful system maintenance commands:
+
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║             GLOBAL CRYPTO EXPLORER INSTALLED SUCCESSFULLY!                ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+  • Explorer URL:             https://explorer.gspcoin.us
+  • First-Time Admin Setup:   https://explorer.gspcoin.us/setup
+  • Service Status:           ONLINE & RUNNING
+  • Coin Name / Symbol:       GSPCoin (GSPC)
+  • RPC Endpoint:             127.0.0.1:18182
+  • Web Server:               Nginx
+```
+
+---
+
+## 🚀 Manual Quick Start Installation
 
 ### 1. Clone the Repository
 ```bash

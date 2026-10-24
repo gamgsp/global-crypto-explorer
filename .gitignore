@@ -6,9 +6,9 @@ package-lock.json
 .env
 
 # SQLite database and WAL files
-data/*.db
-data/*.db-shm
-data/*.db-wal
+data/*
+data/*-shm
+data/*-wal
 data/claims.json
 !data/.gitkeep
 

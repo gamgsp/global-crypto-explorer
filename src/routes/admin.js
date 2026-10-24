@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const db = require('../db');
 const config = require('../config');
+const updater = require('../updater');
 
 // Helper to get auth token hash
 function getAuthToken(passwordHash) {
@@ -181,8 +182,16 @@ router.get('/logout', (req, res) => {
 // ----------------------------------------------------
 // 3. Admin Dashboard & Settings Tabs
 // ----------------------------------------------------
-router.get('/', requireAuth, (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   const conf = config.getConfig();
+  const forceCheck = req.query.check_updates === '1';
+  let updateInfo = null;
+  try {
+    updateInfo = await updater.checkUpdate(forceCheck);
+  } catch (e) {
+    updateInfo = { updateAvailable: false, local: updater.getLocalCommit(), error: e.message };
+  }
+
   res.render('admin/dashboard', {
     active: 'admin_dashboard',
     tab: req.query.tab || 'general',
@@ -191,6 +200,7 @@ router.get('/', requireAuth, (req, res) => {
     adminSlug: conf.adminSlug,
     settings: conf,
     coin: conf.coin,
+    updateInfo,
   });
 });
 
@@ -431,6 +441,28 @@ router.post('/update-profile', requireAuth, (req, res) => {
   res.cookie('admin_token', token, { httpOnly: true, maxAge: 30 * 24 * 3600 * 1000 });
 
   res.redirect(`/${finalSlug}?tab=profile&msg=` + encodeURIComponent('Profile updated successfully!'));
+});
+
+
+// ----------------------------------------------------
+// 9. System Updates & GitHub Sync API
+// ----------------------------------------------------
+router.get('/check-update', requireAuth, async (req, res) => {
+  try {
+    const info = await updater.checkUpdate(true);
+    res.json({ success: true, ...info });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/apply-update', requireAuth, async (req, res) => {
+  try {
+    const result = await updater.runUpdate();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;

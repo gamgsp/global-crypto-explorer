@@ -298,6 +298,12 @@
         <a href="/<%= adminSlug %>?tab=profile" class="sidebar-item <%= tab === 'profile' ? 'active' : '' %>">
           <i class="fa-solid fa-user-gear"></i> <span>Admin Profile</span>
         </a>
+        <a href="/<%= adminSlug %>?tab=updates" class="sidebar-item <%= tab === 'updates' ? 'active' : '' %>" style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: inline-flex; align-items: center; gap: 0.65rem;"><i class="fa-solid fa-cloud-arrow-down" style="color: #38bdf8;"></i> <span>System & Updates</span></span>
+          <% if (updateInfo && updateInfo.updateAvailable) { %>
+            <span class="badge badge-warning" style="font-size: 0.65rem; padding: 2px 7px; font-weight: 700; border-radius: 9999px;">UPDATE</span>
+          <% } %>
+        </a>
       </nav>
 
       <!-- Sidebar Footer -->
@@ -325,6 +331,7 @@
             <% if (tab === 'exchanges') { %>Listed Exchanges & Trading Pairs<% } %>
             <% if (tab === 'footer') { %>Footer Content & Clickable Links<% } %>
             <% if (tab === 'profile') { %>Administrator Profile & Security<% } %>
+            <% if (tab === 'updates') { %>System Updates & GitHub Sync<% } %>
           </h1>
         </div>
 
@@ -332,6 +339,29 @@
           <span class="badge badge-success"><span class="pulse-dot"></span> Admin Active</span>
         </div>
       </div>
+
+            <!-- Global Update Available Banner -->
+      <% if (updateInfo && updateInfo.updateAvailable && tab !== 'updates') { %>
+        <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(99, 102, 241, 0.15)); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 1.1rem 1.4rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 1.3rem;">
+              <i class="fa-solid fa-gift"></i>
+            </div>
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                New Update Available on GitHub!
+                <span class="badge badge-cyan" style="font-size: 0.7rem;"><%= updateInfo.remote.shortSha %></span>
+              </div>
+              <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 2px;">
+                <%= updateInfo.remote.msg %> &bull; <span style="color: #cbd5e1;"><%= updateInfo.remote.author %></span>
+              </div>
+            </div>
+          </div>
+          <a href="/<%= adminSlug %>?tab=updates" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.1rem; font-weight: 600; text-decoration: none; border-radius: 8px;">
+            <i class="fa-solid fa-cloud-arrow-down"></i> View & Install Update
+          </a>
+        </div>
+      <% } %>
 
       <% if (message) { %>
         <div class="alert-success"><i class="fa-solid fa-circle-check"></i> <%= message %></div>
