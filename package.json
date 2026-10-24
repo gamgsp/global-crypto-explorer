@@ -1,7 +1,7 @@
 {
   "name": "global-crypto-explorer",
   "version": "1.0.0",
-  "description": "Global Crypto Explorer - Universal Direct-RPC Blockchain Explorer & Intelligence Engine",
+  "description": "Universal, high-performance, direct-RPC blockchain explorer for Bitcoin, Dash, PIVX & forks with embedded SQLite caching, Web Admin Panel, Masternodes tracker, and automated setup.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -17,5 +17,35 @@
     "express": "^4.19.2",
     "lru-cache": "^10.2.0",
     "qrcode": "^1.5.3"
-  }
+  },
+  "homepage": "https://explorer.gspcoin.us",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gamgsp/global-crypto-explorer.git"
+  },
+  "author": "Global Ads Media, LLC & GSP Coin Team",
+  "license": "MIT",
+  "keywords": [
+    "blockchain-explorer",
+    "crypto-explorer",
+    "block-explorer",
+    "bitcoin",
+    "bitcoin-fork",
+    "dash",
+    "pivx",
+    "cryptocurrency",
+    "better-sqlite3",
+    "sqlite",
+    "direct-rpc",
+    "masternodes",
+    "smartnodes",
+    "richlist",
+    "blockbook",
+    "btc-rpc-explorer",
+    "iquidus-alternative",
+    "insight-api",
+    "web3",
+    "self-hosted",
+    "blockchain-analytics"
+  ]
 }

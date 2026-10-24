@@ -3,7 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= coin.name ? coin.name + ' Explorer' : appName %> - Direct-RPC Blockchain Intelligence</title>
+  <title><%= coin.name ? coin.name + ' (' + coin.symbol + ') Explorer' : appName %> | Real-Time Blockchain Intelligence & Richlist</title>
+  
+  <!-- Primary SEO Meta Tags -->
+  <meta name="title" content="<%= coin.name ? coin.name + ' (' + coin.symbol + ') Explorer' : appName %> | Real-Time Blockchain Intelligence">
+  <meta name="description" content="Explore <%= coin.name %> (<%= coin.symbol %>) blockchain in real-time. Inspect live blocks, verified transactions, address balances, top 100 richlist, whale coin movements, and network consensus powered by Global Crypto Explorer.">
+  <meta name="keywords" content="<%= coin.name %>, <%= coin.symbol %>, <%= coin.name %> explorer, blockchain explorer, crypto explorer, <%= coin.name %> richlist, block height, transaction tracker, crypto wallet balance, masternodes, bitcoin fork, Global Crypto Explorer">
+  <meta name="author" content="Global Ads Media, LLC & GSP Coin Team">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="<%= coin.name ? coin.name + ' (' + coin.symbol + ') Explorer' : appName %>">
+  <meta property="og:description" content="Real-time blockchain explorer for <%= coin.name %> (<%= coin.symbol %>). Track blocks, verified transactions, whale movements, and richlist analytics.">
+  <meta property="og:image" content="<%= coin.logo || '/img/logo.svg' %>">
+  <meta property="og:site_name" content="<%= coin.name ? coin.name + ' Explorer' : 'Global Crypto Explorer' %>">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= coin.name ? coin.name + ' (' + coin.symbol + ') Explorer' : appName %>">
+  <meta name="twitter:description" content="Real-time blockchain explorer for <%= coin.name %> (<%= coin.symbol %>). Track blocks, verified transactions, whale movements, and richlist analytics.">
+  <meta name="twitter:image" content="<%= coin.logo || '/img/logo.svg' %>">
+
+  <!-- JSON-LD Structured Data Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "<%= coin.name ? coin.name : 'Crypto' %> Blockchain Explorer",
+    "alternateName": "Global Crypto Explorer",
+    "url": "<%= settings && settings.domain ? settings.domain : '' %>",
+    "description": "Real-time blockchain ledger and analytics engine for <%= coin.name %> (<%= coin.symbol %>).",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "<%= (settings && settings.domain ? settings.domain : '').replace(/\/$/, '') %>/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
   
   <!-- Favicons -->
   <% if (coin.favicon) { %>
