@@ -1,0 +1,83 @@
+<%- include('partials/header') %>
+
+<div class="glass-card">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-cube" style="color: var(--primary);"></i> Block #<%= block.height.toLocaleString() %>
+    </div>
+    <div>
+      <% if (block.previousblockhash) { %>
+        <a href="/block/<%= block.previousblockhash %>" class="btn btn-outline" style="padding: 0.3rem 0.75rem;"><i class="fa-solid fa-chevron-left"></i> Previous</a>
+      <% } %>
+      <% if (block.nextblockhash) { %>
+        <a href="/block/<%= block.nextblockhash %>" class="btn btn-outline" style="padding: 0.3rem 0.75rem;">Next <i class="fa-solid fa-chevron-right"></i></a>
+      <% } %>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+    <div class="stat-box">
+      <span class="stat-label">Block Hash</span>
+      <span class="mono" style="font-size: 0.85rem; color: #fff;"><%= block.hash %></span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Confirmations</span>
+      <span class="stat-value" style="color: #34d399;"><%= block.confirmations %></span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Timestamp</span>
+      <span class="stat-value" style="font-size: 1rem;"><%= new Date(block.time * 1000).toUTCString() %></span>
+      <span class="stat-sub"><%= block.age %>s ago</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Transactions</span>
+      <span class="stat-value"><%= txs.length %></span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Block Reward / Subsidy</span>
+      <span class="stat-value" style="color: var(--primary);"><%= block.subsidy.toLocaleString() %> <%= coin.symbol %></span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Block Size</span>
+      <span class="stat-value"><%= block.sizeKb %> KB</span>
+      <span class="stat-sub">Difficulty: <%= block.difficulty %></span>
+    </div>
+  </div>
+
+  <div class="card-title" style="margin-bottom: 1rem;">
+    <i class="fa-solid fa-list-check"></i> Transactions in this Block (<%= txs.length %>)
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>TXID</th>
+          <th>Type</th>
+          <th>Inputs</th>
+          <th>Outputs</th>
+          <th>Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% txs.forEach(tx => { %>
+          <tr>
+            <td><a href="/tx/<%= tx.txid %>" class="mono"><%= tx.txid %></a></td>
+            <td>
+              <% if (tx.isCoinbase) { %>
+                <span class="badge badge-success">Coinbase</span>
+              <% } else { %>
+                <span class="badge badge-cyan">Transfer</span>
+              <% } %>
+            </td>
+            <td><%= tx.vin.length %> inputs</td>
+            <td><%= tx.vout.length %> outputs</td>
+            <td style="font-weight: 700; color: #fff;"><%= tx.total %> <%= coin.symbol %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,121 @@
+<%- include('partials/header') %>
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-wallet" style="color: var(--primary);"></i> Wallet Address Details
+      <% if (claim) { %>
+        <span class="badge badge-verified" style="margin-left: 0.75rem;"><i class="fa-solid fa-circle-check"></i> Verified: <%= claim %></span>
+      <% } %>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="/claim?address=<%= address %>" class="btn btn-sm btn-outline"><i class="fa-solid fa-certificate"></i> Claim This Address</a>
+      <a href="/qr/<%= address %>" target="_blank" class="btn btn-sm btn-outline"><i class="fa-solid fa-qrcode"></i> QR Code</a>
+    </div>
+  </div>
+
+  <div class="address-banner">
+    <div class="address-hash mono" id="addrText"><%= address %></div>
+    <button class="btn btn-sm btn-outline" onclick="navigator.clipboard.writeText('<%= address %>'); alert('Address copied to clipboard!');">
+      <i class="fa-regular fa-copy"></i> Copy
+    </button>
+  </div>
+
+  <div class="stat-grid" style="margin-top: 1.5rem;">
+    <div class="stat-card">
+      <div class="stat-label">Final Balance</div>
+      <div class="stat-value text-primary mono"><%= balance %> <span style="font-size: 1rem;"><%= coin.symbol %></span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Received</div>
+      <div class="stat-value text-success mono"><%= received %> <span style="font-size: 1rem;"><%= coin.symbol %></span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Sent</div>
+      <div class="stat-value text-warning mono"><%= sent %> <span style="font-size: 1rem;"><%= coin.symbol %></span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Transactions</div>
+      <div class="stat-value mono"><%= txCount %></div>
+    </div>
+  </div>
+</div>
+
+<div class="glass-card">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Transaction History
+    </div>
+    <span class="badge badge-cyan">Page <%= pagination.page %> of <%= pagination.totalPages %> (20 per page)</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>TxID</th>
+          <th>Block Height</th>
+          <th>Amount</th>
+          <th>Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (txs.length === 0) { %>
+          <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No transaction history indexed for this address yet.</td></tr>
+        <% } else { %>
+          <% txs.forEach(t => { 
+              let badgeClass = 'badge-cyan';
+              if (t.type === 'DEV FUND') badgeClass = 'badge-primary';
+              else if (t.type === 'MINED') badgeClass = 'badge-success';
+              else if (t.type === 'SMARTNODE' || t.type === 'MASTERNODE') badgeClass = 'badge-cyan';
+              else if (t.type === 'SENT') badgeClass = 'badge-warning';
+          %>
+            <tr>
+              <td class="mono">
+                <a href="/tx/<%= t.txid %>" class="address-link" title="<%= t.txid %>">
+                  <%= t.txid %>
+                </a>
+              </td>
+              <td class="mono">
+                <a href="/block/<%= t.height %>">#<%= t.height %></a>
+              </td>
+              <td class="mono" style="font-weight: 600; color: <%= t.type === 'SENT' ? 'var(--warning)' : '#4ade80' %>;">
+                <%= t.type === 'SENT' ? '-' : '+' %><%= t.amount %> <%= coin.symbol %>
+              </td>
+              <td style="color: var(--text-muted);"><%= t.formattedAge || (t.age ? t.age + "s ago" : "Just now") %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls (20 per page) -->
+  <% if (pagination.totalPages > 1) { %>
+    <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem;">
+      <div style="display: flex; gap: 0.35rem;">
+        <% if (pagination.page > 1) { %>
+          <a href="/address/<%= address %>?page=1" class="btn btn-sm btn-outline"><i class="fa-solid fa-angles-left"></i> First</a>
+          <a href="/address/<%= address %>?page=<%= pagination.page - 1 %>" class="btn btn-sm btn-outline"><i class="fa-solid fa-chevron-left"></i> Previous</a>
+        <% } else { %>
+          <button class="btn btn-sm btn-outline" disabled style="opacity: 0.4;"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+        <% } %>
+      </div>
+
+      <span class="mono" style="font-size: 0.85rem; color: var(--text-muted);">
+        Page <strong><%= pagination.page %></strong> of <strong><%= pagination.totalPages %></strong> (<%= (pagination.totalTxs || 0).toLocaleString() %> total transactions)
+      </span>
+
+      <div style="display: flex; gap: 0.35rem;">
+        <% if (pagination.page < pagination.totalPages) { %>
+          <a href="/address/<%= address %>?page=<%= pagination.page + 1 %>" class="btn btn-sm btn-outline">Next <i class="fa-solid fa-chevron-right"></i></a>
+          <a href="/address/<%= address %>?page=<%= pagination.totalPages %>" class="btn btn-sm btn-outline">Last <i class="fa-solid fa-angles-right"></i></a>
+        <% } else { %>
+          <button class="btn btn-sm btn-outline" disabled style="opacity: 0.4;">Next <i class="fa-solid fa-chevron-right"></i></button>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

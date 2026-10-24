@@ -1,0 +1,96 @@
+<%- include('partials/header') %>
+
+<!-- Market Stats Overview Cards -->
+<div class="stat-grid" style="margin-bottom: 2rem;">
+  <div class="stat-card">
+    <div class="stat-label"><%= coin.symbol %> Price (USD)</div>
+    <div class="stat-value text-primary mono">$<%= price.last_price_usd %></div>
+    <div class="stat-sub">Source: <%= price.source %></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label"><%= coin.symbol %> Price (BTC)</div>
+    <div class="stat-value text-cyan mono"><%= price.last_price_btc %> BTC</div>
+    <div class="stat-sub">Live conversion</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Market Capitalization</div>
+    <div class="stat-value text-success mono">$<%= marketCap %></div>
+    <div class="stat-sub">Circulating: <%= supply %> <%= coin.symbol %></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">24h Exchange Volume</div>
+    <div class="stat-value text-warning mono">$<%= total24hVol %></div>
+    <div class="stat-sub">Aggregated across pairs</div>
+  </div>
+</div>
+
+<!-- Active Exchanges List Card -->
+<div class="glass-card" style="margin-bottom: 2rem;">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-building-columns" style="color: var(--primary);"></i> Listed Exchanges & Trading Markets
+    </div>
+    <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Official Markets</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Exchange Name</th>
+          <th>Trading Pair</th>
+          <th>Status</th>
+          <th>Last Price</th>
+          <th>24h Volume</th>
+          <th>Trade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!exchanges || exchanges.length === 0) { %>
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+              <i class="fa-solid fa-store" style="font-size: 2rem; opacity: 0.3; margin-bottom: 0.75rem; display: block;"></i>
+              <div>No exchange markets listed yet.</div>
+              <div style="font-size: 0.85rem; margin-top: 0.35rem; opacity: 0.7;">Exchange markets and trading pairs can be added dynamically via the Admin Panel.</div>
+            </td>
+          </tr>
+        <% } else { %>
+          <% exchanges.forEach(ex => { %>
+            <tr>
+              <td style="font-weight: 600; color: #fff;">
+                <i class="fa-solid fa-arrow-trend-up" style="color: var(--primary); margin-right: 0.5rem;"></i>
+                <%= ex.name %>
+              </td>
+              <td class="mono font-bold text-cyan"><%= ex.pair %></td>
+              <td>
+                <span class="badge <%= ex.active !== false ? 'badge-success' : 'badge-warning' %>">
+                  <%= ex.active !== false ? 'Active' : 'Offline' %>
+                </span>
+              </td>
+              <td class="mono" style="font-weight: 600; color: #4ade80;">
+                $<%= (ex.last_price && ex.last_price > 0) ? ex.last_price.toFixed(8) : '0.00000000' %>
+              </td>
+              <td class="mono" style="color: var(--text-muted);">
+                $<%= (ex.volume_24h || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) %>
+              </td>
+              <td>
+                <% if (ex.pair_url) { %>
+                  <a href="<%= ex.pair_url %>" target="_blank" rel="noopener" class="btn btn-sm btn-outline">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Trade Now
+                  </a>
+                <% } else { %>
+                  <span style="color: var(--text-muted);">N/A</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

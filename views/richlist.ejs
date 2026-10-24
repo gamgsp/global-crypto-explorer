@@ -1,0 +1,134 @@
+<%- include('partials/header') %>
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Wealth Distribution
+    </div>
+    <span class="badge badge-cyan">Circulating Supply: <%= supply %> <%= coin.symbol %></span>
+  </div>
+
+  <div class="distribution-bar" style="margin: 1.5rem 0;">
+    <div class="dist-segment dist-1" style="width: <%= tiers.top1_25.percent %>%;" title="Top 1-25: <%= tiers.top1_25.percent %>%"></div>
+    <div class="dist-segment dist-2" style="width: <%= tiers.top26_50.percent %>%;" title="Top 26-50: <%= tiers.top26_50.percent %>%"></div>
+    <div class="dist-segment dist-3" style="width: <%= tiers.top51_75.percent %>%;" title="Top 51-75: <%= tiers.top51_75.percent %>%"></div>
+    <div class="dist-segment dist-4" style="width: <%= tiers.top76_100.percent %>%;" title="Top 76-100: <%= tiers.top76_100.percent %>%"></div>
+    <div class="dist-segment dist-5" style="width: <%= tiers.rest.percent %>%;" title="Rest: <%= tiers.rest.percent %>%"></div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Top 1 - 25</div>
+      <div class="stat-value mono text-primary"><%= tiers.top1_25.percent %>%</div>
+      <div class="stat-sub mono"><%= tiers.top1_25.amount %> <%= coin.symbol %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top 26 - 50</div>
+      <div class="stat-value mono text-cyan"><%= tiers.top26_50.percent %>%</div>
+      <div class="stat-sub mono"><%= tiers.top26_50.amount %> <%= coin.symbol %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top 51 - 75</div>
+      <div class="stat-value mono text-success"><%= tiers.top51_75.percent %>%</div>
+      <div class="stat-sub mono"><%= tiers.top51_75.amount %> <%= coin.symbol %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top 76 - 100</div>
+      <div class="stat-value mono text-warning"><%= tiers.top76_100.percent %>%</div>
+      <div class="stat-sub mono"><%= tiers.top76_100.amount %> <%= coin.symbol %></div>
+    </div>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-trophy" style="color: var(--primary);"></i> Top 100 Richest Addresses
+    </div>
+    <span class="badge badge-success">Top 100 Hold <%= totalTop100 %> <%= coin.symbol %></span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Address</th>
+          <th>Balance</th>
+          <th>% of Supply</th>
+          <th>Total Received</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (richlist.length === 0) { %>
+          <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Syncing on-chain address balances into local database...</td></tr>
+        <% } else { %>
+          <% richlist.forEach(r => { %>
+            <tr>
+              <td class="mono font-bold" style="color: <%= r.rank <= 3 ? 'var(--primary)' : 'var(--text-muted)' %>;">
+                <%= ['🥇', '🥈', '🥉'][r.rank - 1] || ('#' + r.rank) %>
+              </td>
+              <td class="mono">
+                <a href="/address/<%= r.address %>" class="address-link" title="<%= r.address %>"><%= r.address %></a>
+                <% if (r.claim) { %>
+                  <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> <%= r.claim %></span>
+                <% } %>
+              </td>
+              <td class="mono" style="font-weight: 600; color: #fff;"><%= r.balance %> <%= coin.symbol %></td>
+              <td class="mono text-cyan"><%= r.percent %>%</td>
+              <td class="mono" style="color: var(--text-muted);"><%= r.received %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Top 100 Largest Coin Movements (> 1M GSPC) -->
+<div class="glass-card">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-money-bill-transfer" style="color: #facc15;"></i> Top 100 Largest Movements (&gt; 1M <%= coin.symbol %>)
+    </div>
+    <span class="badge badge-warning">High to Low</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Transaction ID</th>
+          <th>Block Height</th>
+          <th>Amount Transferred</th>
+          <th>Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!topMovements || topMovements.length === 0) { %>
+          <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No transactions recorded yet.</td></tr>
+        <% } else { %>
+          <% topMovements.forEach((tx, idx) => { %>
+            <tr>
+              <td class="mono font-bold" style="color: <%= idx < 3 ? 'var(--primary)' : 'var(--text-muted)' %>;">
+                <%= ['🥇', '🥈', '🥉'][idx] || ('#' + (idx + 1)) %>
+              </td>
+              <td><a href="/tx/<%= tx.txid %>" class="mono address-link"><%= tx.txid %></a></td>
+              <td><a href="/block/<%= tx.blockHeight %>" class="mono">#<%= Number(tx.blockHeight).toLocaleString() %></a></td>
+              <td class="mono" style="font-weight: 700; color: <%= tx.rawAmount >= 1000000 ? '#facc15' : 'var(--primary)' %>;">
+                <%= tx.amount %> <%= coin.symbol %>
+                <% if (tx.rawAmount >= 1000000) { %>
+                  <span class="badge badge-warning" style="margin-left: 0.5rem; font-size: 0.68rem;">WHALE (&gt; 1M)</span>
+                <% } %>
+              </td>
+              <td style="color: var(--text-muted);"><%= tx.formattedAge || (tx.age ? tx.age + "s ago" : "Just now") %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

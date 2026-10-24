@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Crypto Explorer - First-Run Setup Wizard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.15) 0%, #0b0f19 80%);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .setup-box {
+      width: 100%;
+      max-width: 860px;
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      padding: 2.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 0.4rem;
+    }
+    .form-control {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      color: #fff;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 1.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      padding: 0.9rem 1.5rem;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s;
+      margin-top: 1.5rem;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(16, 185, 129, 0.5);
+    }
+    .error-banner {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="setup-box">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #10b981, #3b82f6); display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4); margin-bottom: 0.75rem;">
+        <i class="fa-solid fa-compass" style="font-size: 1.8rem; color: #fff;"></i>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem;">Global Crypto Explorer</h1>
+      <p style="color: #94a3b8; font-size: 0.95rem;">First-Run Configuration & Initial Setup Wizard</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="error-banner"><i class="fa-solid fa-triangle-exclamation"></i> <%= error %></div>
+    <% } %>
+
+    <form action="/setup" method="POST">
+      <!-- Section 1: Administrator Credentials -->
+      <div class="section-header">
+        <i class="fa-solid fa-user-shield" style="color: #10b981;"></i>
+        <span>1. Admin Security & Custom Login Route</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Admin Name</label>
+          <input type="text" name="admin_name" class="form-control" value="Owner / Admin" required>
+        </div>
+        <div class="form-group">
+          <label>Admin Email</label>
+          <input type="email" name="admin_email" class="form-control" value="admin@crypto.com" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Admin Password (min. 6 characters)</label>
+          <input type="password" name="admin_password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label>Confirm Admin Password</label>
+          <input type="password" name="admin_password_confirm" class="form-control" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Custom Admin URL Path Slug (e.g., 'gamus' -> domain.com/gamus)</label>
+        <div style="display: flex; align-items: center; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding-left: 0.9rem;">
+          <span style="color: #64748b; font-size: 0.9rem;">domain.com/</span>
+          <input type="text" name="admin_slug" class="form-control" value="gamus" style="border: none; background: transparent; padding-left: 0.2rem;" required pattern="[a-zA-Z0-9_-]+" title="Letters, numbers, underscores, or hyphens only">
+        </div>
+        <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.3rem;">This hides your admin portal from bots and unauthorized users.</small>
+      </div>
+
+      <!-- Section 2: Coin Identity & Node RPC -->
+      <div class="section-header">
+        <i class="fa-solid fa-coins" style="color: #3b82f6;"></i>
+        <span>2. Coin Identity & Daemon RPC Node</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Coin Name</label>
+          <input type="text" name="coin_name" class="form-control" placeholder="e.g. Bitcoin, Dash, MyCoin" required>
+        </div>
+        <div class="form-group">
+          <label>Ticker / Symbol</label>
+          <input type="text" name="coin_symbol" class="form-control" placeholder="e.g. BTC, DASH, COIN" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Decimals</label>
+          <input type="number" name="coin_decimals" class="form-control" value="8" required>
+        </div>
+        <div class="form-group">
+          <label>Coin Logo URL (optional)</label>
+          <input type="text" name="logo_url" class="form-control" placeholder="https://example.com/logo.png">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>RPC Host</label>
+          <input type="text" name="rpc_host" class="form-control" value="127.0.0.1" required>
+        </div>
+        <div class="form-group">
+          <label>RPC Port</label>
+          <input type="number" name="rpc_port" class="form-control" placeholder="e.g. 9998" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>RPC Username</label>
+          <input type="text" name="rpc_user" class="form-control" placeholder="rpcuser" required>
+        </div>
+        <div class="form-group">
+          <label>RPC Password</label>
+          <input type="password" name="rpc_password" class="form-control" placeholder="rpcpassword" required>
+        </div>
+      </div>
+
+      <!-- Section 3: Features & Initial Appearance -->
+      <div class="section-header">
+        <i class="fa-solid fa-palette" style="color: #a855f7;"></i>
+        <span>3. Features & Visual Appearance</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Enable Masternodes / Smartnodes Page?</label>
+          <select name="has_masternodes" class="form-control">
+            <option value="1" selected>Yes - Enable Masternodes</option>
+            <option value="0">No - Disable (for standard PoW/PoS coins)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Node Terminology Label</label>
+          <input type="text" name="masternode_label" class="form-control" value="Masternodes">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Explorer Font</label>
+          <select name="theme_font" class="form-control">
+            <option value="Outfit" selected>Outfit (Modern Clean)</option>
+            <option value="Inter">Inter (Classic Technical)</option>
+            <option value="Poppins">Poppins (Geometric Round)</option>
+            <option value="Roboto">Roboto (Google Standard)</option>
+            <option value="Space Grotesk">Space Grotesk (Tech / Web3)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Primary Accent Color</label>
+          <input type="color" name="theme_accent_color" class="form-control" value="#10b981" style="height: 42px; padding: 0.2rem 0.5rem;">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <i class="fa-solid fa-rocket" style="margin-right: 0.5rem;"></i> Initialize Global Crypto Explorer
+      </button>
+    </form>
+  </div>
+</body>
+</html>

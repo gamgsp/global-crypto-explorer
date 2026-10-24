@@ -1,0 +1,88 @@
+<%- include('partials/header') %>
+
+<div class="glass-card">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-receipt" style="color: var(--cyan);"></i> Transaction Details
+    </div>
+    <span class="badge <%= tx.confirmations > 0 ? 'badge-success' : 'badge-warning' %>">
+      <%= tx.confirmations %> Confirmations
+    </span>
+  </div>
+
+  <div style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-card);">
+    <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">TRANSACTION ID</span>
+    <span class="mono" style="font-size: 0.95rem; color: var(--primary);"><%= tx.txid %></span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+    <div class="stat-box">
+      <span class="stat-label">Included in Block</span>
+      <% if (tx.blockhash) { %>
+        <a href="/block/<%= tx.blockhash %>" class="stat-value" style="font-size: 1.1rem;">#<%= tx.height ? tx.height.toLocaleString() : 'View Block' %></a>
+      <% } else { %>
+        <span class="stat-value" style="font-size: 1.1rem; color: #fbbf24;">Mempool (Unconfirmed)</span>
+      <% } %>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Total Amount</span>
+      <span class="stat-value mono" style="color: #fff;"><%= tx.totalOut %> <%= coin.symbol %></span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Timestamp</span>
+      <span class="stat-value" style="font-size: 0.95rem;"><%= tx.time ? new Date(tx.time * 1000).toUTCString() : 'Pending' %></span>
+    </div>
+  </div>
+
+  <!-- Vin and Vout Flow -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-arrow-right-to-bracket" style="color: var(--cyan);"></i> Inputs (<%= vin.length %>)</div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead><tr><th>Address</th><th>Amount</th></tr></thead>
+          <tbody>
+            <% vin.forEach(v => { %>
+              <tr>
+                <td>
+                  <% if (v.coinbase) { %>
+                    <span class="badge badge-success">Mined / Coinbase</span>
+                  <% } else { %>
+                    <a href="/address/<%= v.address %>" class="mono address-link"><%= v.address %></a>
+                  <% } %>
+                </td>
+                <td class="mono" style="color: #fff;"><%= v.amount ? v.amount + ' ' + coin.symbol : '--' %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-arrow-right-from-bracket" style="color: var(--primary);"></i> Outputs (<%= vout.length %>)</div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead><tr><th>Address</th><th>Amount</th></tr></thead>
+          <tbody>
+            <% vout.forEach(v => { %>
+              <tr>
+                <td>
+                  <a href="/address/<%= v.address %>" class="mono address-link"><%= v.address %></a>
+                  <% if (v.claim) { %>
+                    <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> <%= v.claim %></span>
+                  <% } %>
+                </td>
+                <td class="mono" style="font-weight: 700; color: #4ade80;">
+                  <%= (v.amount !== undefined && v.amount !== null) ? v.amount : (v.value || '0.00000000') %> <%= coin.symbol %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

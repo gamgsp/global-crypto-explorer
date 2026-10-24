@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+
+<div class="glass-card">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-network-wired" style="color: var(--cyan);"></i> Connected Network Peers (<%= count %>)
+    </div>
+    <span class="badge badge-success">P2P Network Active</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Peer IP & Port</th>
+          <th>Subversion / Client</th>
+          <th>Protocol</th>
+          <th>Ping</th>
+          <th>Connected Since</th>
+          <th>Direction</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (peers.length === 0) { %>
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Connecting to network seed nodes...</td></tr>
+        <% } else { %>
+          <% peers.forEach(p => { %>
+            <tr>
+              <td class="mono" style="font-weight: 600; color: #fff;"><%= p.addr %></td>
+              <td><span class="badge badge-cyan"><%= p.subver %></span></td>
+              <td><%= p.version %></td>
+              <td style="color: #34d399;"><%= p.ping %></td>
+              <td style="color: var(--text-muted);"><%= p.conntime %></td>
+              <td><%= p.inbound %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

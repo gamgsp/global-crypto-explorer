@@ -1,0 +1,384 @@
+<%- include('partials/header') %>
+
+<!-- Top Hero Summary Banner (Admin Configurable) -->
+<% if (settings.features.hasHeroBanner) { %>
+<div class="hero-banner">
+  <div class="hero-content">
+    <% if (settings.hero.badge) { %>
+      <div class="hero-badge"><span class="pulse-dot"></span> <%= settings.hero.badge %></div>
+    <% } %>
+    <h1 class="hero-title"><%= settings.hero.title || (coin.name + ' Block Explorer') %></h1>
+    <p class="hero-desc"><%= settings.hero.subtitle || ('High-speed, direct-RPC explorer for ' + coin.name + '. Real-time blocks, transactions, and on-chain intelligence.') %></p>
+  </div>
+  <div class="hero-coin-badge">
+    <% if (settings.hero.image) { %>
+      <img src="<%= settings.hero.image %>" alt="<%= coin.symbol %> Logo" class="spinning-coin" width="90" height="90" style="object-fit: contain;">
+    <% } else if (coin.logo) { %>
+      <img src="<%= coin.logo %>" alt="<%= coin.symbol %> Logo" class="spinning-coin" width="90" height="90" style="object-fit: contain;">
+    <% } else { %>
+      <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #3b82f6); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);">
+        <i class="fa-solid fa-cube" style="font-size: 2.2rem; color: #fff;"></i>
+      </div>
+    <% } %>
+  </div>
+</div>
+<% } %>
+
+<!-- Key Network Metrics Grid -->
+<div class="stat-grid" style="margin-bottom: 2rem;">
+  <div class="stat-card">
+    <div class="stat-label"><i class="fa-solid fa-cube text-primary"></i> Block Height</div>
+    <div class="stat-value mono text-primary" id="statBlockCount"><%= stats.blockCount %></div>
+    <div class="stat-sub" id="statMempool">Mempool: <%= stats.mempoolSize %> txs</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label"><i class="fa-solid fa-coins text-warning"></i> Circulating Supply</div>
+    <div class="stat-value mono text-warning" id="statCirculatingSupply"><%= stats.circulatingSupply %></div>
+    <div class="stat-sub"><%= coin.symbol %> in circulation</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label"><i class="fa-solid fa-tag text-success"></i> <%= coin.symbol %> Price & Cap</div>
+    <div class="stat-value mono text-success">$<%= stats.priceUsd %></div>
+    <div class="stat-sub">Market Cap: $<%= stats.marketCap %></div>
+  </div>
+
+  <% if (settings.features.hasMasternodes) { %>
+  <div class="stat-card">
+    <div class="stat-label"><i class="fa-solid fa-share-nodes text-cyan"></i> <%= settings.features.masternodeLabel || 'Masternodes' %></div>
+    <div class="stat-value mono text-cyan" id="statMasternodes"><%= stats.masternodes %> / <%= stats.totalMasternodes %></div>
+    <div class="stat-sub">Active Network Nodes</div>
+  </div>
+  <% } %>
+
+  <div class="stat-card">
+    <div class="stat-label"><i class="fa-solid fa-hammer" style="color: #a855f7;"></i> Difficulty</div>
+    <div class="stat-value mono" style="color: #c084fc;" id="statDifficulty"><%= stats.difficulty %></div>
+    <div class="stat-sub" id="statHashrate">Hashrate: <%= stats.hashrate %></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label"><i class="fa-solid fa-network-wired text-cyan"></i> Peer Connections</div>
+    <div class="stat-value mono" id="statConnections"><%= stats.connections %> Peers</div>
+    <div class="stat-sub"><%= stats.connections > 0 ? 'P2P Network Active' : 'Node Disconnected' %></div>
+  </div>
+</div>
+
+<!-- Modern Interactive Dashboard Charts -->
+<div class="glass-card" style="margin-bottom: 2rem;">
+  <div class="glass-card-header" style="flex-wrap: wrap; gap: 1rem;">
+    <div class="card-title">
+      <i class="fa-solid fa-chart-area" style="color: var(--primary);"></i> Network Activity & Metrics Charts
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+      <div class="chart-tab-group">
+        <button class="chart-tab active" data-chart="txs"><i class="fa-solid fa-chart-simple"></i> Transactions</button>
+        <button class="chart-tab" data-chart="diff"><i class="fa-solid fa-wave-square"></i> Difficulty</button>
+        <button class="chart-tab" data-chart="hashrate"><i class="fa-solid fa-microchip"></i> Hashrate</button>
+        <button class="chart-tab" data-chart="blocks"><i class="fa-solid fa-cubes"></i> Daily Blocks</button>
+      </div>
+      <div class="chart-days-group" style="display: inline-flex; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px;">
+        <button type="button" class="chart-day-btn" data-days="7" style="background: transparent; border: none; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.65rem; border-radius: 6px; cursor: pointer; transition: all 0.2s;">7D</button>
+        <button type="button" class="chart-day-btn" data-days="15" style="background: transparent; border: none; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.65rem; border-radius: 6px; cursor: pointer; transition: all 0.2s;">15D</button>
+        <button type="button" class="chart-day-btn active" data-days="30" style="background: var(--primary); border: none; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.65rem; border-radius: 6px; cursor: pointer; transition: all 0.2s;">30D</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-container" style="position: relative; height: 280px; width: 100%;">
+    <div id="chartEmptyNotice" style="display: none; height: 280px; align-items: center; justify-content: center; flex-direction: column; color: var(--text-muted); font-size: 0.95rem;">
+      <i class="fa-solid fa-chart-line" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.4;"></i>
+      <span>Real blockchain metrics will plot automatically as blocks are indexed.</span>
+    </div>
+    <canvas id="dashboardChart"></canvas>
+  </div>
+</div>
+
+<!-- Latest Blocks & Transactions Dual Section with Symmetrical Height and Pixel Alignment -->
+<div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; align-items: stretch;">
+  <!-- Latest Blocks Card -->
+  <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+    <div>
+      <div class="glass-card-header" style="height: 52px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+        <div class="card-title">
+          <i class="fa-solid fa-cubes" style="color: var(--primary);"></i> Latest Blocks
+        </div>
+        <span class="badge badge-success"><span class="pulse-dot"></span> Live</span>
+      </div>
+
+      <div class="table-responsive" style="min-height: 480px;">
+        <table class="custom-table aligned-table">
+          <thead>
+            <tr style="height: 42px;">
+              <th>Height</th>
+              <th>Block Hash</th>
+              <th>Txs</th>
+              <th>Size</th>
+              <th>Age</th>
+            </tr>
+          </thead>
+          <tbody id="latestBlocksBody">
+            <% if (latestBlocks.length === 0) { %>
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 3rem;">Loading latest blocks...</td></tr>
+            <% } else { %>
+              <% latestBlocks.forEach(b => { %>
+                <tr style="height: 44px;">
+                  <td class="mono font-bold">
+                    <a href="/block/<%= b.height %>" class="height-link">#<%= b.height %></a>
+                  </td>
+                  <td class="mono">
+                    <a href="/block/<%= b.hash %>" class="address-link" title="<%= b.hash %>">
+                      <%= b.hash %>
+                    </a>
+                  </td>
+                  <td><span class="badge badge-cyan"><%= b.txCount %> txs</span></td>
+                  <td class="mono" style="color: var(--text-muted);"><%= b.formattedSize %></td>
+                  <td style="color: var(--text-muted);"><%= b.formattedAge || (b.age + "s ago") %></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Blocks Pagination Controls -->
+    <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color); height: 48px;">
+      <% if (pagination.blockPage > 1) { %>
+        <a href="/?blockPage=<%= pagination.blockPage - 1 %>&txPage=<%= pagination.txPage %>" class="btn btn-sm btn-outline"><i class="fa-solid fa-chevron-left"></i> Previous</a>
+      <% } else { %>
+        <button class="btn btn-sm btn-outline" disabled style="opacity: 0.4;"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+      <% } %>
+
+      <span class="mono" style="font-size: 0.82rem; color: var(--text-muted);">Page <%= pagination.blockPage %> of <%= pagination.totalBlockPages %></span>
+
+      <% if (pagination.blockPage < pagination.totalBlockPages) { %>
+        <a href="/?blockPage=<%= pagination.blockPage + 1 %>&txPage=<%= pagination.txPage %>" class="btn btn-sm btn-outline">Next <i class="fa-solid fa-chevron-right"></i></a>
+      <% } else { %>
+        <button class="btn btn-sm btn-outline" disabled style="opacity: 0.4;">Next <i class="fa-solid fa-chevron-right"></i></button>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Recent Transactions Card -->
+  <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+    <div>
+      <div class="glass-card-header" style="height: 52px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+        <div class="card-title">
+          <i class="fa-solid fa-bolt" style="color: #facc15;"></i> Recent Transactions
+        </div>
+        <span class="badge badge-warning"><span class="pulse-dot"></span> Active</span>
+      </div>
+
+      <div class="table-responsive" style="min-height: 480px;">
+        <table class="custom-table aligned-table">
+          <thead>
+            <tr style="height: 42px;">
+              <th>TxID</th>
+              <th>Block</th>
+              <th>Value</th>
+              <th>Age</th>
+            </tr>
+          </thead>
+          <tbody id="recentTxsBody">
+            <% if (recentTxs.length === 0) { %>
+              <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 3rem;">No recent transactions in these blocks.</td></tr>
+            <% } else { %>
+              <% recentTxs.forEach(t => { %>
+                <tr style="height: 44px;">
+                  <td class="mono">
+                    <a href="/tx/<%= t.txid %>" class="address-link" title="<%= t.txid %>">
+                      <%= t.txid %>
+                    </a>
+                  </td>
+                  <td class="mono">
+                    <a href="/block/<%= t.height %>">#<%= t.height %></a>
+                  </td>
+                  <td class="mono" style="font-weight: 600; color: #4ade80;">
+                    <%= (typeof t.total_out === 'number' ? t.total_out.toFixed(4) : (t.total_out || '0.0000')) %> <%= coin.symbol %>
+                  </td>
+                  <td style="color: var(--text-muted);"><%= t.formattedAge || (t.age ? t.age + "s ago" : "Just now") %></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Transactions Pagination Controls -->
+    <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color); height: 48px;">
+      <% if (pagination.txPage > 1) { %>
+        <a href="/?blockPage=<%= pagination.blockPage %>&txPage=<%= pagination.txPage - 1 %>" class="btn btn-sm btn-outline"><i class="fa-solid fa-chevron-left"></i> Previous</a>
+      <% } else { %>
+        <button class="btn btn-sm btn-outline" disabled style="opacity: 0.4;"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+      <% } %>
+
+      <span class="mono" style="font-size: 0.82rem; color: var(--text-muted);">Page <%= pagination.txPage %> of <%= pagination.totalTxPages %></span>
+
+      <% if (pagination.txPage < pagination.totalTxPages) { %>
+        <a href="/?blockPage=<%= pagination.blockPage %>&txPage=<%= pagination.txPage + 1 %>" class="btn btn-sm btn-outline">Next <i class="fa-solid fa-chevron-right"></i></a>
+      <% } else { %>
+        <button class="btn btn-sm btn-outline" disabled style="opacity: 0.4;">Next <i class="fa-solid fa-chevron-right"></i></button>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Chart Initialization Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    let chartInstance = null;
+    let chartHistoryData = [];
+    let currentType = 'txs';
+    let currentDays = 30;
+
+    async function loadChartData(days = 15) {
+      try {
+        currentDays = days;
+        const res = await fetch(`/api/charts?days=${days}`);
+        const json = await res.json();
+        if (json.success && json.history) {
+          chartHistoryData = json.history;
+          renderChart(currentType);
+        }
+      } catch (err) {
+        console.error('Failed to load chart data:', err);
+      }
+    }
+
+    function renderChart(type) {
+      const ctx = document.getElementById('dashboardChart');
+      const emptyNotice = document.getElementById('chartEmptyNotice');
+      if (!ctx) return;
+
+      if (!chartHistoryData || chartHistoryData.length === 0) {
+        ctx.style.display = 'none';
+        if (emptyNotice) emptyNotice.style.display = 'flex';
+        return;
+      }
+      ctx.style.display = 'block';
+      if (emptyNotice) emptyNotice.style.display = 'none';
+
+      const labels = chartHistoryData.map(d => d.day ? d.day.slice(5) : '');
+      let dataPoints = [];
+      let label = 'Transactions';
+      let borderColor = '#00d2ff';
+      let bgGradientStart = 'rgba(0, 210, 255, 0.35)';
+
+      if (type === 'txs') {
+        dataPoints = chartHistoryData.map(d => d.tx_count || 0);
+        label = 'Daily Transactions';
+        borderColor = '#00d2ff';
+        bgGradientStart = 'rgba(0, 210, 255, 0.3)';
+      } else if (type === 'diff') {
+        dataPoints = chartHistoryData.map(d => parseFloat(d.avg_difficulty || 0));
+        label = 'Network Difficulty';
+        borderColor = '#a855f7';
+        bgGradientStart = 'rgba(168, 85, 247, 0.3)';
+      } else if (type === 'hashrate') {
+        dataPoints = chartHistoryData.map(d => parseFloat(d.avg_hashrate || 0));
+        label = 'Network Hashrate (MH/s)';
+        borderColor = '#f59e0b';
+        bgGradientStart = 'rgba(245, 158, 11, 0.3)';
+      } else if (type === 'blocks') {
+        dataPoints = chartHistoryData.map(d => d.block_count || 0);
+        label = 'Blocks Mined';
+        borderColor = '#10b981';
+        bgGradientStart = 'rgba(16, 185, 129, 0.3)';
+      }
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 260);
+      gradient.addColorStop(0, bgGradientStart);
+      gradient.addColorStop(1, 'rgba(15, 23, 42, 0)');
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: label,
+            data: dataPoints,
+            borderColor: borderColor,
+            borderWidth: 2.5,
+            backgroundColor: gradient,
+            fill: true,
+            tension: 0.38,
+            pointBackgroundColor: borderColor,
+            pointBorderColor: '#fff',
+            pointHoverRadius: 6,
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 1000,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#94a3b8',
+                font: { family: 'Inter', size: 12, weight: 600 }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              titleColor: '#fff',
+              bodyColor: '#38bdf8',
+              padding: 10,
+              displayColors: false,
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    document.querySelectorAll('.chart-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        currentType = this.getAttribute('data-chart');
+        renderChart(currentType);
+      });
+    });
+
+    document.querySelectorAll('.chart-day-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.chart-day-btn').forEach(b => {
+          b.classList.remove('active');
+          b.style.background = 'transparent';
+          b.style.color = 'var(--text-muted)';
+        });
+        this.classList.add('active');
+        this.style.background = 'var(--primary)';
+        this.style.color = '#fff';
+        const days = parseInt(this.getAttribute('data-days'), 10) || 15;
+        loadChartData(days);
+      });
+    });
+
+    loadChartData(30);
+  });
+</script>
+
+<%- include('partials/footer') %>

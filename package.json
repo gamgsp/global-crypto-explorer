@@ -1,0 +1,21 @@
+{
+  "name": "global-crypto-explorer",
+  "version": "1.0.0",
+  "description": "Global Crypto Explorer - Universal Direct-RPC Blockchain Explorer & Intelligence Engine",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^9.6.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "lru-cache": "^10.2.0",
+    "qrcode": "^1.5.3"
+  }
+}

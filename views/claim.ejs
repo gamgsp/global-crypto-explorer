@@ -1,0 +1,124 @@
+<%- include('partials/header') %>
+
+<% if (success) { %>
+  <div class="alert alert-success" style="margin-bottom: 1.5rem;">
+    <i class="fa-solid fa-circle-check"></i> <%= success %>
+  </div>
+<% } %>
+
+<% if (error) { %>
+  <div class="alert alert-danger" style="margin-bottom: 1.5rem;">
+    <i class="fa-solid fa-triangle-exclamation"></i> <%= error %>
+  </div>
+<% } %>
+
+<div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+  <!-- Claim Form -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="card-title">
+        <i class="fa-solid fa-certificate" style="color: var(--primary);"></i> Claim Address Ownership
+      </div>
+      <span class="badge badge-success">Cryptographic Verification</span>
+    </div>
+
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+      Prove that you control a GSP Coin wallet address by signing a custom message with your private key in the official GSP Coin Core wallet.
+    </p>
+
+    <form action="/claim" method="POST">
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label class="form-label">Wallet Address to Claim</label>
+        <input type="text" name="address" class="form-input mono" placeholder="e.g. GZBNAiLokyYvSwNLftReXuYbvdmzNoorGj" required autocomplete="off">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label class="form-label">Display Nickname / Organization</label>
+        <input type="text" name="claim_name" class="form-input" placeholder="e.g. Community Miner #1, Exchange Hot Wallet" required maxlength="50">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label class="form-label">Message Signed</label>
+        <input type="text" name="message" class="form-input mono" placeholder="e.g. Claiming ownership of this address on GSP Coin Explorer" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label">Cryptographic Signature</label>
+        <textarea name="signature" class="form-input mono" rows="3" placeholder="Paste the Base64 signature from your wallet..." required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">
+        <i class="fa-solid fa-check-double"></i> Verify Signature & Claim Address
+      </button>
+    </form>
+  </div>
+
+  <!-- Instructions Card -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="card-title">
+        <i class="fa-solid fa-circle-info" style="color: var(--cyan);"></i> How to Sign a Message
+      </div>
+      <span class="badge badge-cyan">Step-by-Step Guide</span>
+    </div>
+
+    <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
+      <h4 style="color: #fff; margin-bottom: 0.5rem;"><i class="fa-solid fa-desktop" style="color: var(--primary);"></i> In GSP Coin Qt Wallet:</h4>
+      <ol style="padding-left: 1.25rem; margin-bottom: 1.25rem;">
+        <li>Open your GSP Coin Core wallet on Windows, Mac, or Linux.</li>
+        <li>Click <strong>File</strong> &rarr; <strong>Sign message...</strong></li>
+        <li>Select or paste your GSP Coin receiving address.</li>
+        <li>Type your chosen verification message in the Message box.</li>
+        <li>Click <strong>Sign Message</strong> and copy the generated signature string.</li>
+        <li>Paste the address, message, and signature into this form!</li>
+      </ol>
+
+      <h4 style="color: #fff; margin-bottom: 0.5rem;"><i class="fa-solid fa-terminal" style="color: var(--primary);"></i> In CLI / Daemon:</h4>
+      <pre class="code-box">coind-cli signmessage "YOUR_ADDRESS" "YOUR_MESSAGE"</pre>
+      <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+        The signature is verified on-chain via the daemon's native <code>verifymessage</code> RPC. Your private keys never leave your device.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Verified Claims Table -->
+<div class="glass-card">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Verified Address Directory
+    </div>
+    <span class="badge badge-success"><%= claims.length %> Verified</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Address</th>
+          <th>Verified Display Name</th>
+          <th>Verification Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (claims.length === 0) { %>
+          <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No claimed addresses yet. Be the first to claim yours above!</td></tr>
+        <% } else { %>
+          <% claims.forEach(c => { %>
+            <tr>
+              <td class="mono">
+                <a href="/address/<%= c.address %>" class="address-link"><%= c.address %></a>
+              </td>
+              <td>
+                <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> <%= c.claim_name %></span>
+              </td>
+              <td style="color: var(--text-muted); font-size: 0.85rem;"><%= c.formattedDate %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

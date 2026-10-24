@@ -1,0 +1,79 @@
+<%- include('partials/header') %>
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-code-branch" style="color: var(--primary);"></i> Orphaned & Forked Blocks
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-success"><i class="fa-solid fa-cube"></i> Main Chain: #<%= activeHeight %></span>
+      <span class="badge <%= orphans.length > 0 ? 'badge-warning' : 'badge-cyan' %>">
+        <i class="fa-solid fa-code-fork"></i> <%= orphans.length %> Fork Tips
+      </span>
+    </div>
+  </div>
+
+  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.85rem;">
+      <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.3rem;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Node Consensus: 100% Linear</div>
+        <div style="color: var(--text-muted); font-size: 0.82rem;">Real-time node consensus data verified via native daemon <code>getchaintips</code> RPC.</div>
+      </div>
+    </div>
+    <div class="mono" style="font-size: 0.8rem; color: #94a3b8; background: rgba(0,0,0,0.3); padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+      Active Tip Hash: <span style="color: #38bdf8;"><%= activeHash.slice(0, 24) %>...</span>
+    </div>
+  </div>
+
+    <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Block Height</th>
+          <th>Orphan Block Hash</th>
+          <th>Fork Point / Prev Hash</th>
+          <th>Branch Length</th>
+          <th>Difficulty</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (orphans && orphans.length > 0) { %>
+          <% orphans.forEach(tip => { 
+              let badgeClass = 'badge-warning';
+              if (tip.status === 'valid-fork') badgeClass = 'badge-warning';
+              else if (tip.status === 'valid-headers') badgeClass = 'badge-cyan';
+              else if (tip.status === 'invalid') badgeClass = 'badge-danger';
+          %>
+            <tr>
+              <td class="mono font-bold" style="color: #fff;">#<%= tip.height %></td>
+              <td class="mono">
+                <a href="/block/<%= tip.hash %>" class="address-link" title="<%= tip.hash %>"><%= tip.hash %></a>
+              </td>
+              <td class="mono" style="color: var(--text-muted);">
+                <% if (tip.forkpoint && tip.forkpoint !== 'N/A' && tip.forkpoint !== tip.hash) { %>
+                  <a href="/block/<%= tip.forkpoint %>" class="address-link" title="<%= tip.forkpoint %>"><%= tip.forkpoint.slice(0, 24) %>...</a>
+                <% } else { %>
+                  <span style="opacity: 0.5;">None (Root)</span>
+                <% } %>
+              </td>
+              <td class="mono"><%= tip.branchlen %> block(s)</td>
+              <td class="mono" style="color: var(--text-muted);"><%= tip.difficulty %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+              <div style="font-size: 1.1rem; color: #4ade80; margin-bottom: 0.5rem;"><i class="fa-solid fa-circle-check"></i> No Orphaned Blocks Detected</div>
+              <span>The blockchain consensus is 100% linear and healthy with 0 orphaned or stale blocks.</span>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

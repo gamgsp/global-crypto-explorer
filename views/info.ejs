@@ -1,0 +1,379 @@
+<%- include('partials/header') %>
+
+<div class="glass-card">
+  <div class="glass-card-header" style="border-bottom: none; margin-bottom: 0;">
+    <div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem;">
+        <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> <%= coin.name %> Public API
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        A listing of public API endpoints for retrieving <%= coin.name %> data from the network without the need for a local wallet.
+      </p>
+    </div>
+  </div>
+
+  <hr style="border-color: var(--border-card); margin: 1.5rem 0;">
+
+  <!-- Core API Calls -->
+  <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem;">API Calls</h3>
+  <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;"><em>Return data from coind</em></p>
+
+  <!-- 1. getdifficulty -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getdifficulty</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the current difficulty.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getdifficulty" target="_blank" class="api-link"><%= host %>/api/getdifficulty</a>
+      <button onclick="testApi('/api/getdifficulty', 'preview-diff')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-diff" class="api-preview-box"></div>
+  </div>
+
+  <!-- 2. getconnectioncount -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getconnectioncount</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the number of connections the block explorer has to other nodes.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getconnectioncount" target="_blank" class="api-link"><%= host %>/api/getconnectioncount</a>
+      <button onclick="testApi('/api/getconnectioncount', 'preview-conn')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-conn" class="api-preview-box"></div>
+  </div>
+
+  <!-- 3. getblockcount -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getblockcount</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the current block index.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getblockcount" target="_blank" class="api-link"><%= host %>/api/getblockcount</a>
+      <button onclick="testApi('/api/getblockcount', 'preview-blkcount')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-blkcount" class="api-preview-box"></div>
+  </div>
+
+  <!-- 4. getblockhash [index] -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getblockhash [index]</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the hash of the block at [index]; index 0 is the genesis block.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getblockhash?index=64152" target="_blank" class="api-link"><%= host %>/api/getblockhash?index=64152</a>
+      <button onclick="testApi('/api/getblockhash?index=64152', 'preview-blkhash')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-blkhash" class="api-preview-box"></div>
+  </div>
+
+  <!-- 5. getblock [hash] -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getblock [hash]</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns information about the block with the given hash.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getblock?hash=<%= sampleBlk %>" target="_blank" class="api-link"><%= host %>/api/getblock?hash=<%= sampleBlk %></a>
+      <button onclick="testApi('/api/getblock?hash=<%= sampleBlk %>', 'preview-blk')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-blk" class="api-preview-box"></div>
+  </div>
+
+  <!-- 6. getrawtransaction [txid] [decrypt] -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getrawtransaction [txid] [decrypt]</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns raw transaction representation for given transaction id. decrypt can be set to 0(false) or 1(true).</div>
+    <div style="margin-bottom: 0.5rem;">
+      <a href="/api/getrawtransaction?txid=<%= sampleTx %>&decrypt=0" target="_blank" class="api-link"><%= host %>/api/getrawtransaction?txid=<%= sampleTx %>&decrypt=0</a>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getrawtransaction?txid=<%= sampleTx %>&decrypt=1" target="_blank" class="api-link"><%= host %>/api/getrawtransaction?txid=<%= sampleTx %>&decrypt=1</a>
+      <button onclick="testApi('/api/getrawtransaction?txid=<%= sampleTx %>&decrypt=1', 'preview-rawtx')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-rawtx" class="api-preview-box"></div>
+  </div>
+
+  <!-- 7. getnetworkhashps -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getnetworkhashps</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the current network hashrate. (hash/s)</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getnetworkhashps" target="_blank" class="api-link"><%= host %>/api/getnetworkhashps</a>
+      <button onclick="testApi('/api/getnetworkhashps', 'preview-hashps')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-hashps" class="api-preview-box"></div>
+  </div>
+
+  <!-- 8. getvotelist -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getvotelist</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the current vote list.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getvotelist" target="_blank" class="api-link"><%= host %>/api/getvotelist</a>
+      <button onclick="testApi('/api/getvotelist', 'preview-votes')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-votes" class="api-preview-box"></div>
+  </div>
+
+  <!-- 9. getmasternodecount -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getmasternodecount</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the total number of masternodes on the network.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/api/getmasternodecount" target="_blank" class="api-link"><%= host %>/api/getmasternodecount</a>
+      <button onclick="testApi('/api/getmasternodecount', 'preview-mncount')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-mncount" class="api-preview-box"></div>
+  </div>
+
+  <hr style="border-color: var(--border-card); margin: 2rem 0;">
+
+  <!-- Extended API -->
+  <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem;">Extended API</h3>
+  <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;"><em>Return data from local indexes and direct-RPC</em></p>
+
+  <!-- 10. getmoneysupply -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getmoneysupply</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns current money supply</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getmoneysupply" target="_blank" class="api-link"><%= host %>/ext/getmoneysupply</a>
+      <button onclick="testApi('/ext/getmoneysupply', 'preview-supply')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-supply" class="api-preview-box"></div>
+  </div>
+
+  <!-- 11. getdistribution -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getdistribution</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns wealth distribution stats</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getdistribution" target="_blank" class="api-link"><%= host %>/ext/getdistribution</a>
+      <button onclick="testApi('/ext/getdistribution', 'preview-dist')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-dist" class="api-preview-box"></div>
+  </div>
+
+  <!-- 12. getaddress (/ext/getaddress/hash) -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getaddress (/ext/getaddress/hash)</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns information for given address</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getaddress/<%= sampleAddr %>" target="_blank" class="api-link"><%= host %>/ext/getaddress/<%= sampleAddr %></a>
+      <button onclick="testApi('/ext/getaddress/<%= sampleAddr %>', 'preview-addr')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-addr" class="api-preview-box"></div>
+  </div>
+
+  <!-- 13. getaddresstxs (/ext/getaddresstxs/hash/start/length) -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getaddresstxs (/ext/getaddresstxs/hash/start/length)</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns last [length] transactions for address [hash], starting from offset [start]</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getaddresstxs/<%= sampleAddr %>/0/50" target="_blank" class="api-link"><%= host %>/ext/getaddresstxs/<%= sampleAddr %>/0/50</a>
+      <button onclick="testApi('/ext/getaddresstxs/<%= sampleAddr %>/0/50', 'preview-addrtxs')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-addrtxs" class="api-preview-box"></div>
+  </div>
+
+  <!-- 14. gettx (/ext/gettx/hash) -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">gettx (/ext/gettx/hash)</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns information for given tx hash</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/gettx/<%= sampleTx %>" target="_blank" class="api-link"><%= host %>/ext/gettx/<%= sampleTx %></a>
+      <button onclick="testApi('/ext/gettx/<%= sampleTx %>', 'preview-tx')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-tx" class="api-preview-box"></div>
+  </div>
+
+  <!-- 15. getbalance (/ext/getbalance/hash) -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getbalance (/ext/getbalance/hash)</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns current balance of given address</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getbalance/<%= sampleAddr %>" target="_blank" class="api-link"><%= host %>/ext/getbalance/<%= sampleAddr %></a>
+      <button onclick="testApi('/ext/getbalance/<%= sampleAddr %>', 'preview-bal')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-bal" class="api-preview-box"></div>
+  </div>
+
+  <!-- 16. getlasttxs (/ext/getlasttxs/min/start/length) -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getlasttxs (/ext/getlasttxs/min/start/length)</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns last [length] transactions greater than [min] coins, starting from offset [start]</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getlasttxs/100/0/100" target="_blank" class="api-link"><%= host %>/ext/getlasttxs/100/0/100</a>
+      <button onclick="testApi('/ext/getlasttxs/100/0/100', 'preview-lasttxs')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-lasttxs" class="api-preview-box"></div>
+  </div>
+
+  <!-- 17. getcurrentprice -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getcurrentprice</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns last known exchange price</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getcurrentprice" target="_blank" class="api-link"><%= host %>/ext/getcurrentprice</a>
+      <button onclick="testApi('/ext/getcurrentprice', 'preview-price')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-price" class="api-preview-box"></div>
+  </div>
+
+  <!-- 18. getnetworkpeers -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getnetworkpeers</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the list of network peers that have connected to the explorer node in the last 24 hours</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getnetworkpeers" target="_blank" class="api-link"><%= host %>/ext/getnetworkpeers</a>
+      <button onclick="testApi('/ext/getnetworkpeers', 'preview-peers')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-peers" class="api-preview-box"></div>
+  </div>
+
+  <!-- 19. getbasicstats -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getbasicstats</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns basic statistics about the coin including: block count, circulating supply, USD price, USDT price, # of masternodes</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getbasicstats" target="_blank" class="api-link"><%= host %>/ext/getbasicstats</a>
+      <button onclick="testApi('/ext/getbasicstats', 'preview-basicstats')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-basicstats" class="api-preview-box"></div>
+  </div>
+
+  <!-- 20. getsummary -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getsummary</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns a summary of coin data including: difficulty, hybrid difficulty, circulating supply, hash rate, USDT price, USD price, network connection count, block count, count of online masternodes, count of offline masternodes</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getsummary" target="_blank" class="api-link"><%= host %>/ext/getsummary</a>
+      <button onclick="testApi('/ext/getsummary', 'preview-summary')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-summary" class="api-preview-box"></div>
+  </div>
+
+  <!-- 21. getmasternodelist -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getmasternodelist</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the complete list of masternodes on the network.</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getmasternodelist" target="_blank" class="api-link"><%= host %>/ext/getmasternodelist</a>
+      <button onclick="testApi('/ext/getmasternodelist', 'preview-mnlist')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-mnlist" class="api-preview-box"></div>
+  </div>
+
+  <!-- 22. getmasternoderewards -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getmasternoderewards (/ext/getmasternoderewards/hash/since)</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns a list of masternode reward transactions for address [hash] that arrived after block height [since]</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getmasternoderewards/<%= sampleAddr %>/64152" target="_blank" class="api-link"><%= host %>/ext/getmasternoderewards/<%= sampleAddr %>/64152</a>
+      <button onclick="testApi('/ext/getmasternoderewards/<%= sampleAddr %>/64152', 'preview-mnrewards')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-mnrewards" class="api-preview-box"></div>
+  </div>
+
+  <!-- 23. getmasternoderewardstotal -->
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header">
+      <span class="api-path">getmasternoderewardstotal (/ext/getmasternoderewardstotal/hash/since)</span>
+      <span class="api-method">GET</span>
+    </div>
+    <div class="api-desc">Returns the total number of coins earned in masternode rewards for address [hash] that arrived after block height [since]</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <a href="/ext/getmasternoderewardstotal/<%= sampleAddr %>/64152" target="_blank" class="api-link"><%= host %>/ext/getmasternoderewardstotal/<%= sampleAddr %>/64152</a>
+      <button onclick="testApi('/ext/getmasternoderewardstotal/<%= sampleAddr %>/64152', 'preview-mnrewardstotal')" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;"><i class="fa-solid fa-play"></i> Test</button>
+    </div>
+    <div id="preview-mnrewardstotal" class="api-preview-box"></div>
+  </div>
+
+  <hr style="border-color: var(--border-card); margin: 2rem 0;">
+
+  <!-- Linking -->
+  <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem;">Linking (GET)</h3>
+  <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;"><em>Direct links to explorer pages</em></p>
+
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header"><span class="api-path">transaction (/tx/txid)</span></div>
+    <a href="/tx/<%= sampleTx %>" target="_blank" class="api-link"><%= host %>/tx/<%= sampleTx %></a>
+  </div>
+
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header"><span class="api-path">block (/block/hash)</span></div>
+    <a href="/block/<%= sampleBlk %>" target="_blank" class="api-link"><%= host %>/block/<%= sampleBlk %></a>
+  </div>
+
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header"><span class="api-path">address (/address/hash)</span></div>
+    <a href="/address/<%= sampleAddr %>" target="_blank" class="api-link"><%= host %>/address/<%= sampleAddr %></a>
+  </div>
+
+  <div class="api-endpoint-card">
+    <div class="api-endpoint-header"><span class="api-path">qrcode (/qr/hash)</span></div>
+    <a href="/qr/<%= sampleAddr %>" target="_blank" class="api-link"><%= host %>/qr/<%= sampleAddr %></a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

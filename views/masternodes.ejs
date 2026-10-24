@@ -1,0 +1,78 @@
+<%- include('partials/header') %>
+
+<div class="glass-card">
+  <div class="glass-card-header">
+    <div class="card-title">
+      <i class="fa-solid fa-share-nodes" style="color: var(--primary);"></i> Masternodes Network
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> <%= counts.enabled %> Enabled</span>
+      <span class="badge badge-cyan"><i class="fa-solid fa-cubes-stacked"></i> <%= counts.total %> Total</span>
+      <span class="badge badge-warning"><i class="fa-solid fa-lock"></i> <%= counts.lockedSupply %> <%= coin.symbol %> Locked</span>
+    </div>
+  </div>
+
+  <div class="table-search-bar" style="margin-bottom: 1.25rem;">
+    <input type="text" id="mnSearchInput" class="form-input" placeholder="Filter by IP, wallet address, or status..." style="max-width: 380px;">
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table" id="masternodesTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>IP Address</th>
+          <th>Status</th>
+          <th>Linked Wallet Address</th>
+          <th>Last Seen</th>
+          <th>Active Blocks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (masternodes.length === 0) { %>
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Querying active masternodes from network...</td></tr>
+        <% } else { %>
+          <% masternodes.forEach(mn => { %>
+            <tr>
+              <td class="mono" style="color: var(--text-muted);"><%= mn.rank %></td>
+              <td class="mono" style="font-weight: 600; color: #fff;">
+                <i class="fa-solid fa-server" style="color: var(--primary); margin-right: 0.35rem; font-size: 0.85rem;"></i>
+                <%= mn.ip %>
+              </td>
+              <td>
+                <span class="badge <%= mn.status === 'ENABLED' ? 'badge-success' : 'badge-warning' %>"><%= mn.status %></span>
+              </td>
+              <td class="mono">
+                <% if (mn.wallet) { %>
+                  <a href="/address/<%= mn.wallet %>" class="address-link" title="<%= mn.wallet %>">
+                    <%= mn.wallet %>
+                  </a>
+                  <% if (mn.claim) { %>
+                    <span class="badge badge-verified" title="Verified Owner"><i class="fa-solid fa-circle-check"></i> <%= mn.claim %></span>
+                  <% } %>
+                <% } else { %>
+                  <span style="color: var(--text-muted);">N/A</span>
+                <% } %>
+              </td>
+              <td style="color: var(--text-muted); font-size: 0.85rem;"><%= mn.lastseen %></td>
+              <td class="mono" style="color: var(--text-muted);"><%= mn.activeblocks %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  document.getElementById('mnSearchInput')?.addEventListener('keyup', function() {
+    const val = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#masternodesTable tbody tr');
+    rows.forEach(r => {
+      const text = r.textContent.toLowerCase();
+      r.style.display = text.includes(val) ? '' : 'none';
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

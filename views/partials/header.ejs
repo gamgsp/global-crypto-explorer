@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= coin.name ? coin.name + ' Explorer' : appName %> - Direct-RPC Blockchain Intelligence</title>
+  
+  <!-- Favicons -->
+  <% if (coin.favicon) { %>
+    <link rel="icon" href="<%= coin.favicon %>">
+  <% } else { %>
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg?v=2">
+    <link rel="alternate icon" href="/favicon.svg?v=2">
+  <% } %>
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=<%= encodeURIComponent(settings.theme.font || 'Outfit') %>:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js CDN for client-side charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Dynamic Theme Settings -->
+  <style>
+    :root {
+      --font-sans: '<%= settings.theme.font || "Outfit" %>', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --bg-main: <%= settings.theme.bgColor || "#0b0f19" %>;
+      --card-bg: <%= settings.theme.cardBg || "rgba(17, 24, 39, 0.75)" %>;
+      --border-card: <%= settings.theme.cardBorder || "rgba(255, 255, 255, 0.08)" %>;
+      --card-radius: <%= settings.theme.cardRadius || "14px" %>;
+      --text-primary: <%= settings.theme.textPrimary || "#ffffff" %>;
+      --text-muted: <%= settings.theme.textSecondary || "#9ca3af" %>;
+      --primary: <%= settings.theme.accentColor || "#10b981" %>;
+      --accent: <%= settings.theme.accentColor || "#10b981" %>;
+    }
+
+    body {
+      font-family: var(--font-sans) !important;
+      background-color: var(--bg-main) !important;
+      <% if (settings.theme.bgType === 'image' && settings.theme.bgImage) { %>
+      background-image: url('<%= settings.theme.bgImage %>') !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-attachment: fixed !important;
+      <% } else if (settings.theme.bgType === 'gradient') { %>
+      background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, var(--bg-main) 70%) !important;
+      <% } %>
+      color: var(--text-primary) !important;
+    }
+
+    .glass-card, .table-card, .stat-card, .api-endpoint-card {
+      background: var(--card-bg) !important;
+      border-color: var(--border-card) !important;
+      border-radius: var(--card-radius) !important;
+    }
+
+    .badge-primary, .btn-primary, .chart-tab.active {
+      background: var(--primary) !important;
+      border-color: var(--primary) !important;
+    }
+
+    .text-primary {
+      color: var(--primary) !important;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar-custom">
+    <div class="navbar-container">
+      <a href="/" class="brand-logo" title="<%= coin.name %> Explorer">
+        <% if (coin.logo) { %>
+          <img src="<%= coin.logo %>" alt="<%= coin.name %>" class="brand-img" height="40" style="max-height: 40px; object-fit: contain;">
+        <% } else { %>
+          <div style="display: flex; align-items: center; gap: 0.65rem; font-weight: 800; font-size: 1.25rem; color: #fff;">
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), #3b82f6); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+              <i class="fa-solid fa-cube" style="color: #fff; font-size: 1.1rem;"></i>
+            </div>
+            <span><%= coin.name || appName %></span>
+          </div>
+        <% } %>
+      </a>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="badge badge-outline auto-refresh-badge" title="Auto-refreshes every 60s">
+          <i class="fa-solid fa-arrows-rotate"></i> <span id="autoRefreshSec">60s</span>
+        </span>
+        <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+
+      <form class="search-form" action="/search" method="POST">
+        <input type="text" name="search" class="search-input" placeholder="Search block height, hash, txid, or <%= coin.symbol || 'wallet' %> address..." required autocomplete="off">
+        <button type="submit" class="search-btn" title="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+      </form>
+
+      <nav class="nav-menu" id="navMenu">
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link <%= active === 'home' ? 'active' : '' %>"><i class="fa-solid fa-cubes"></i> Explorer</a></li>
+          
+          <% if (settings.features.hasMasternodes) { %>
+            <li><a href="/masternodes" class="nav-link <%= active === 'masternodes' ? 'active' : '' %>"><i class="fa-solid fa-share-nodes"></i> <%= settings.features.masternodeLabel || 'Masternodes' %></a></li>
+          <% } %>
+          
+          <li><a href="/richlist" class="nav-link <%= active === 'richlist' ? 'active' : '' %>"><i class="fa-solid fa-chart-pie"></i> Top 100</a></li>
+          <li><a href="/market" class="nav-link <%= active === 'market' ? 'active' : '' %>"><i class="fa-solid fa-chart-line"></i> Market</a></li>
+          <li><a href="/claim" class="nav-link <%= active === 'claim' ? 'active' : '' %>"><i class="fa-solid fa-certificate"></i> Claim Address</a></li>
+          <li><a href="/orphans" class="nav-link <%= active === 'orphans' ? 'active' : '' %>"><i class="fa-solid fa-code-branch"></i> Orphans</a></li>
+          <li><a href="/movement" class="nav-link <%= active === 'movement' ? 'active' : '' %>"><i class="fa-solid fa-money-bill-transfer"></i> Movement</a></li>
+          <li><a href="/network" class="nav-link <%= active === 'network' ? 'active' : '' %>"><i class="fa-solid fa-network-wired"></i> Network</a></li>
+          <li><a href="/info" class="nav-link <%= active === 'info' ? 'active' : '' %>"><i class="fa-solid fa-code"></i> API</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
