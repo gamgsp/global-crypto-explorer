@@ -34,15 +34,25 @@
                   if (p.includes('twitter') || p === 'x') iconClass = 'fa-brands fa-x-twitter';
                   else if (p.includes('telegram')) iconClass = 'fa-brands fa-telegram';
                   else if (p.includes('discord')) iconClass = 'fa-brands fa-discord';
+                  else if (p.includes('bitcointalk')) iconClass = 'fa-brands fa-btc';
+                  else if (p.includes('forum') || p.includes('talk') || p.includes('garden')) iconClass = 'fa-solid fa-comments';
+                  else if (p.includes('medium')) iconClass = 'fa-brands fa-medium';
+                  else if (p.includes('substack')) iconClass = 'fa-solid fa-bookmark';
                   else if (p.includes('github')) iconClass = 'fa-brands fa-github';
+                  else if (p.includes('gitlab')) iconClass = 'fa-brands fa-gitlab';
+                  else if (p.includes('linkedin')) iconClass = 'fa-brands fa-linkedin';
                   else if (p.includes('reddit')) iconClass = 'fa-brands fa-reddit';
+                  else if (p.includes('youtube')) iconClass = 'fa-brands fa-youtube';
+                  else if (p.includes('tiktok')) iconClass = 'fa-brands fa-tiktok';
+                  else if (p.includes('threads')) iconClass = 'fa-brands fa-threads';
+                  else if (p.includes('whatsapp')) iconClass = 'fa-brands fa-whatsapp';
                   else if (p.includes('facebook')) iconClass = 'fa-brands fa-facebook';
                   else if (p.includes('instagram')) iconClass = 'fa-brands fa-instagram';
-                  else if (p.includes('whatsapp')) iconClass = 'fa-brands fa-whatsapp';
-                  else if (p.includes('youtube')) iconClass = 'fa-brands fa-youtube';
+                  else if (p.includes('mastodon')) iconClass = 'fa-brands fa-mastodon';
                   else if (p.includes('coinmarketcap') || p.includes('cmc')) iconClass = 'fa-solid fa-coins';
                   else if (p.includes('coingecko')) iconClass = 'fa-solid fa-dragon';
                   else if (p.includes('coinpaprika')) iconClass = 'fa-solid fa-pepper-hot';
+                  else if (p.includes('coincodex') || p.includes('dex') || p.includes('screener') || p.includes('watch')) iconClass = 'fa-solid fa-chart-line';
               %>
                 <a href="<%= item.url %>" target="_blank" rel="noopener" class="social-link" title="<%= item.title || item.platform %>"><i class="<%= iconClass %>"></i></a>
               <% }); %>

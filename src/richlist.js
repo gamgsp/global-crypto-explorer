@@ -11,6 +11,24 @@ async function getRichlistData() {
     tip = db.getMaxBlockHeight() || 0;
   }
   const supply = calculateMoneySupply(tip);
+
+  // Real-time verification of top balances via native daemon addressindex
+  try {
+    const currentTop = db.getTopAddresses(100);
+    if (currentTop && currentTop.length > 0) {
+      await Promise.all(currentTop.slice(0, 50).map(async (row) => {
+        try {
+          const balData = await rpc.call('getaddressbalance', [{ addresses: [row.address] }]);
+          if (balData && typeof balData.balance === 'number') {
+            const bal = balData.balance / 1e8;
+            const rec = (balData.received || balData.balance) / 1e8;
+            db.saveAddressBalance(row.address, bal, rec, Math.max(0, rec - bal), 0);
+          }
+        } catch (e) {}
+      }));
+    }
+  } catch (err) {}
+
   return db.getRichlistTiers(supply);
 }
 
@@ -19,27 +37,9 @@ function getBalanceFromRichlist(address) {
   return row ? row.balance : null;
 }
 
-// Background block scanner to ensure address balances are kept synchronized
-let isSyncing = false;
-async function syncNewBlocks() {
-  if (isSyncing) return;
-  isSyncing = true;
-  try {
-    const tip = await rpc.getBlockCount();
-    const maxDb = db.getMaxBlockHeight() || 0;
-    if (tip > maxDb) {
-      // Indexer will sync these blocks directly into SQLite
-    }
-  } catch (err) {
-  } finally {
-    isSyncing = false;
-  }
-}
-
 module.exports = {
   fetchRealRichlist: getRichlistData,
   getRichlistData,
   getBalanceFromRichlist,
-  syncNewBlocks,
   recalculate: getRichlistData,
 };

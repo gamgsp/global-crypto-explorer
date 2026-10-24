@@ -567,11 +567,37 @@
               <% (settings.socialLinks || []).forEach((item, index) => { %>
                 <div class="dynamic-item-row">
                   <select name="platforms[]" class="form-control" style="width: 220px;">
-                    <% const platforms = ['CoinMarketCap', 'CoinGecko', 'CoinPaprika', 'Twitter / X', 'Telegram', 'Discord', 'WhatsApp', 'Facebook', 'Instagram', 'YouTube', 'Reddit', 'GitHub', 'Official Website', 'Explorer', 'Custom']; %>
-                    <% platforms.forEach(p => { %>
-                      <option value="<%= p %>" <%= item.platform === p ? 'selected' : '' %>><%= p %></option>
-                    <% }); %>
-                  </select>
+                <option value="CoinMarketCap">CoinMarketCap</option>
+                <option value="CoinGecko">CoinGecko</option>
+                <option value="CoinPaprika">CoinPaprika</option>
+                <option value="Bitcointalk">Bitcointalk</option>
+                <option value="Bitcoin Garden">Bitcoin Garden</option>
+                <option value="Altcointalks">Altcointalks</option>
+                <option value="CryptoTalk">CryptoTalk</option>
+                <option value="Twitter / X" selected>Twitter / X</option>
+                <option value="Telegram">Telegram</option>
+                <option value="Discord">Discord</option>
+                <option value="Reddit">Reddit</option>
+                <option value="Medium">Medium</option>
+                <option value="Substack">Substack</option>
+                <option value="GitHub">GitHub</option>
+                <option value="GitLab">GitLab</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="YouTube">YouTube</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Threads">Threads</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Mastodon">Mastodon</option>
+                <option value="CoinCodex">CoinCodex</option>
+                <option value="LiveCoinWatch">LiveCoinWatch</option>
+                <option value="DexTools">DexTools</option>
+                <option value="DexScreener">DexScreener</option>
+                <option value="Official Website">Official Website</option>
+                <option value="Explorer">Explorer</option>
+                <option value="Custom">Custom</option>
+              </select>
                   <input type="text" name="titles[]" class="form-control" value="<%= item.title %>" placeholder="Title / Label">
                   <input type="text" name="urls[]" class="form-control" value="<%= item.url %>" placeholder="https://..." required>
                   <button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
