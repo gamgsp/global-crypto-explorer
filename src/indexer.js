@@ -1,15 +1,9 @@
 const rpc = require('./rpc');
 const db = require('./db');
-const { LRUCache } = require('lru-cache');
-
-// In-memory cache for fast prevout lookups
-const prevoutCache = new LRUCache({
-  max: 100000,
-});
 
 let isIndexing = false;
 
-// Helper: Query daemon RPC getaddressbalance for exact LevelDB ground-truth
+// Query daemon RPC getaddressbalance for exact LevelDB ground-truth
 async function fetchAndSaveAddressBalances(addressList) {
   if (!addressList || addressList.length === 0) return;
   const unique = Array.from(new Set(addressList.filter(a => typeof a === 'string' && a.length >= 26)));
@@ -33,41 +27,89 @@ async function fetchAndSaveAddressBalances(addressList) {
   }
 }
 
-// Batch indexer: inserts blocks and txs in bulk inside a single SQLite transaction
-const insertBlockAndTxsBatch = db.db.transaction((records) => {
-  for (const { b, txs } of records) {
-    db.stmts.insertBlock.run({
-      height: b.height,
-      hash: b.hash,
-      time: b.time,
-      tx_count: Array.isArray(b.tx) ? b.tx.length : 0,
-      size: b.size || 0,
-      difficulty: b.difficulty || 0,
-    });
-    for (const tx of txs) {
-      db.stmts.insertTx.run(tx);
-    }
-  }
-});
+// 1. Fast Block Headers Indexer for 30-Day continuous chart stats
+// Uses verbosity=1 (fast headers + txids), executes backwards from tip downwards in parallel batches
+async function fastBootstrapChartHistory(tip, targetDays = 35) {
+  // At ~350-400 blocks/day, 35 days is ~14,000 blocks
+  const targetBlocks = targetDays * 400;
+  const startH = Math.max(1, tip - targetBlocks);
 
-// Process a range of block heights in parallel batches
-async function indexBlockRange(startHeight, endHeight, verbosity = 2) {
+  // Check how many blocks we have in this window
+  const countRow = db.db.prepare('SELECT COUNT(1) as c FROM blocks WHERE height >= ?').get(startH);
+  const currentCount = countRow ? countRow.c : 0;
+  if (currentCount >= targetBlocks * 0.85) {
+    return; // Already populated
+  }
+
+  console.log(`[Indexer] Fast bootstrapping ${targetDays}-Day chart history (${tip} down to ${startH})...`);
+
   const chunkSize = 50;
-  for (let h = startHeight; h <= endHeight; h += chunkSize) {
+  // Index BACKWARDS from tip downwards so the most recent 30 days are filled first!
+  for (let h = tip; h >= startH; h -= chunkSize) {
+    const chunkStart = Math.max(startH, h - chunkSize + 1);
+    const chunkEnd = h;
     const heights = [];
-    for (let i = 0; i < chunkSize && h + i <= endHeight; i++) {
-      heights.push(h + i);
+    for (let i = chunkEnd; i >= chunkStart; i--) {
+      heights.push(i);
     }
 
     try {
-      const blocks = await Promise.all(heights.map(ht => rpc.getBlock(ht, verbosity).catch(() => null)));
+      // Find heights in this chunk not yet in database
+      const existingRows = db.db.prepare('SELECT height FROM blocks WHERE height >= ? AND height <= ?').all(chunkStart, chunkEnd);
+      const existingSet = new Set(existingRows.map(r => r.height));
+      const missingHeights = heights.filter(ht => !existingSet.has(ht));
+
+      if (missingHeights.length === 0) continue;
+
+      const blocks = await Promise.all(missingHeights.map(ht => rpc.getBlock(ht, 1).catch(() => null)));
+      const insertStmt = db.stmts.insertBlock;
+      const insertMany = db.db.transaction((blks) => {
+        for (const b of blks) {
+          if (!b) continue;
+          insertStmt.run({
+            height: b.height,
+            hash: b.hash,
+            time: b.time,
+            tx_count: Array.isArray(b.tx) ? b.tx.length : 0,
+            size: b.size || 0,
+            difficulty: b.difficulty || 0,
+          });
+        }
+      });
+      insertMany(blocks.filter(Boolean));
+    } catch (err) {
+      console.error(`[Indexer] Error during fast chart bootstrap chunk ${chunkStart}-${chunkEnd}:`, err.message);
+    }
+  }
+  console.log(`[Indexer] Fast 30-Day chart history bootstrap completed.`);
+}
+
+// 2. Early Whale Movements & Genesis Distribution Bootstrap (Blocks 1 to 500)
+// Indexes all premine / whale transactions (each with 5,000,000 GSPC) into txs table and addresses table
+async function bootstrapWhaleMovements(tip) {
+  const whaleCountRow = db.db.prepare('SELECT COUNT(1) as c FROM txs WHERE total_out >= 1000000').get();
+  if (whaleCountRow && whaleCountRow.c >= 50) {
+    return; // Already populated
+  }
+
+  const endH = Math.min(500, tip);
+  console.log(`[Indexer] Bootstrapping Whale Movements & Premine Blocks (1 to ${endH})...`);
+
+  const chunkSize = 25;
+  const addressesToQuery = new Set();
+
+  for (let h = 1; h <= endH; h += chunkSize) {
+    const chunkEnd = Math.min(endH, h + chunkSize - 1);
+    const heights = [];
+    for (let i = h; i <= chunkEnd; i++) heights.push(i);
+
+    try {
+      const blocks = await Promise.all(heights.map(ht => rpc.getBlock(ht, 2).catch(() => null)));
       const records = [];
-      const addressesToUpdate = new Set();
 
       for (const b of blocks) {
         if (!b) continue;
         const txs = [];
-
         if (Array.isArray(b.tx)) {
           for (const tx of b.tx) {
             let totalOut = 0;
@@ -82,7 +124,89 @@ async function indexBlockRange(startHeight, endHeight, verbosity = 2) {
                 totalOut += val;
                 if (out.scriptPubKey && Array.isArray(out.scriptPubKey.addresses)) {
                   for (const addr of out.scriptPubKey.addresses) {
-                    addressesToUpdate.add(addr);
+                    addressesToQuery.add(addr);
+                    db.recordAddressTx(addr, txid, b.height, val, 'COINBASE', b.time);
+                  }
+                }
+              }
+            }
+
+            txs.push({
+              txid,
+              blockheight: b.height,
+              blockhash: b.hash,
+              time: b.time,
+              total_out: totalOut,
+              vin_count: vinCount,
+              vout_count: voutCount,
+            });
+          }
+        }
+        records.push({ b, txs });
+      }
+
+      // Save blocks and txs in bulk
+      const insertTxStmt = db.stmts.insertTx;
+      const insertBlockStmt = db.stmts.insertBlock;
+      const saveBatch = db.db.transaction((recs) => {
+        for (const { b, txs } of recs) {
+          insertBlockStmt.run({
+            height: b.height,
+            hash: b.hash,
+            time: b.time,
+            tx_count: Array.isArray(b.tx) ? b.tx.length : 0,
+            size: b.size || 0,
+            difficulty: b.difficulty || 0,
+          });
+          for (const tx of txs) {
+            insertTxStmt.run(tx);
+          }
+        }
+      });
+      saveBatch(records);
+    } catch (err) {
+      console.error(`[Indexer] Error indexing early blocks ${h}-${chunkEnd}:`, err.message);
+    }
+  }
+
+  // Update real LevelDB balances for all early whale addresses found
+  if (addressesToQuery.size > 0) {
+    await fetchAndSaveAddressBalances(Array.from(addressesToQuery));
+  }
+  console.log(`[Indexer] Whale Movements bootstrap complete.`);
+}
+
+// 3. Deep Transaction Indexer for recent blocks
+async function indexRecentBlockRange(startHeight, endHeight) {
+  const chunkSize = 25;
+  for (let h = startHeight; h <= endHeight; h += chunkSize) {
+    const chunkEnd = Math.min(endHeight, h + chunkSize - 1);
+    const heights = [];
+    for (let i = h; i <= chunkEnd; i++) heights.push(i);
+
+    try {
+      const blocks = await Promise.all(heights.map(ht => rpc.getBlock(ht, 2).catch(() => null)));
+      const records = [];
+      const addrs = new Set();
+
+      for (const b of blocks) {
+        if (!b) continue;
+        const txs = [];
+        if (Array.isArray(b.tx)) {
+          for (const tx of b.tx) {
+            let totalOut = 0;
+            const isTxObj = typeof tx === 'object' && tx !== null;
+            const txid = isTxObj ? tx.txid : String(tx);
+            const vinCount = isTxObj && Array.isArray(tx.vin) ? tx.vin.length : 0;
+            const voutCount = isTxObj && Array.isArray(tx.vout) ? tx.vout.length : 0;
+
+            if (isTxObj && Array.isArray(tx.vout)) {
+              for (const out of tx.vout) {
+                const val = parseFloat(out.value || 0);
+                totalOut += val;
+                if (out.scriptPubKey && Array.isArray(out.scriptPubKey.addresses)) {
+                  for (const addr of out.scriptPubKey.addresses) {
+                    addrs.add(addr);
                     db.recordAddressTx(addr, txid, b.height, val, 'RECEIVED', b.time);
                   }
                 }
@@ -100,18 +224,33 @@ async function indexBlockRange(startHeight, endHeight, verbosity = 2) {
             });
           }
         }
-
         records.push({ b, txs });
       }
 
-      insertBlockAndTxsBatch(records);
+      const insertTxStmt = db.stmts.insertTx;
+      const insertBlockStmt = db.stmts.insertBlock;
+      const saveBatch = db.db.transaction((recs) => {
+        for (const { b, txs } of recs) {
+          insertBlockStmt.run({
+            height: b.height,
+            hash: b.hash,
+            time: b.time,
+            tx_count: Array.isArray(b.tx) ? b.tx.length : 0,
+            size: b.size || 0,
+            difficulty: b.difficulty || 0,
+          });
+          for (const tx of txs) {
+            insertTxStmt.run(tx);
+          }
+        }
+      });
+      saveBatch(records);
 
-      // Asynchronously update address balances from native daemon
-      if (addressesToUpdate.size > 0) {
-        await fetchAndSaveAddressBalances(Array.from(addressesToUpdate));
+      if (addrs.size > 0) {
+        await fetchAndSaveAddressBalances(Array.from(addrs));
       }
-    } catch (batchErr) {
-      console.error(`[Indexer] Error in block batch ${h}-${h+chunkSize}:`, batchErr.message);
+    } catch (err) {
+      console.error(`[Indexer] Error indexing recent range ${h}-${chunkEnd}:`, err.message);
     }
   }
 }
@@ -123,41 +262,26 @@ async function syncBlockchain() {
 
   try {
     const tip = await rpc.getBlockCount();
-    if (tip === null || tip === undefined || tip < 0) {
+    if (tip === null || tip === undefined || tip <= 0) {
       isIndexing = false;
       return;
     }
 
-    let currentMax = db.getMaxBlockHeight() || 0;
+    // 1. Fast 30-Day Chart History (Runs backwards from tip: fills missing blocks within seconds)
+    await fastBootstrapChartHistory(tip, 35);
 
-    // 1. Initial 30-Day Deep Chart Bootstrap (indexes past ~22,000 blocks to cover 35 days)
-    const requiredRecentBlocks = Math.min(22000, tip);
-    const chartStart = Math.max(1, tip - requiredRecentBlocks);
+    // 2. Early Whale Movements & Premine Blocks 1..500 (>1M GSPC transfers)
+    await bootstrapWhaleMovements(tip);
 
-    // Check how many blocks we have in the recent 35-day window
-    const recentCountRow = db.db.prepare('SELECT COUNT(1) as c FROM blocks WHERE height >= ?').get(chartStart);
-    const recentCount = recentCountRow ? recentCountRow.c : 0;
-
-    if (recentCount < 5000) {
-      console.log(`[Indexer] Bootstrapping 30-Day chart history (${chartStart} to ${tip})...`);
-      await indexBlockRange(chartStart, tip, 2);
-      console.log(`[Indexer] 30-Day chart bootstrap complete.`);
-    }
-
-    // 2. Initial Richlist Whale Bootstrap (scan blocks 1 to 5000 for genesis & premine whale addresses)
-    const earlyCountRow = db.db.prepare('SELECT COUNT(1) as c FROM blocks WHERE height <= 5000').get();
-    const earlyCount = earlyCountRow ? earlyCountRow.c : 0;
-
-    if (earlyCount < 2000) {
-      console.log(`[Indexer] Bootstrapping early blocks 1 to 5000 for complete Richlist & Whale addresses...`);
-      await indexBlockRange(1, Math.min(5000, tip), 2);
-      console.log(`[Indexer] Early blocks bootstrap complete.`);
-    }
-
-    // 3. Real-time catch-up: process any new blocks from daemon
-    currentMax = db.getMaxBlockHeight() || 0;
-    if (tip > currentMax) {
-      await indexBlockRange(currentMax + 1, tip, 2);
+    // 3. Deep Recent Transactions (~1000 blocks)
+    const currentMax = db.getMaxBlockHeight() || 0;
+    const recentStart = Math.max(1, tip - 1000);
+    const recentCount = db.db.prepare('SELECT COUNT(1) as c FROM txs WHERE blockheight >= ?').get(recentStart)?.c || 0;
+    if (recentCount < 500) {
+      await indexRecentBlockRange(recentStart, tip);
+    } else if (tip > currentMax) {
+      // Catch up any newly mined blocks
+      await indexRecentBlockRange(currentMax + 1, tip);
     }
   } catch (err) {
     console.error('[Indexer] Sync error:', err.message);
@@ -175,6 +299,8 @@ function startIndexer() {
 module.exports = {
   startIndexer,
   syncBlockchain,
-  indexBlockRange,
+  fastBootstrapChartHistory,
+  bootstrapWhaleMovements,
+  indexRecentBlockRange,
   fetchAndSaveAddressBalances,
 };

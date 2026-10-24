@@ -556,9 +556,48 @@
 
       <!-- TAB 5: SOCIAL MEDIA & PRICE TRACKER LINKS -->
       <% if (tab === 'socials') { %>
+        <% 
+          const socialPlatforms = [
+            'Bitcointalk',
+            'Bitcoin Garden',
+            'Altcointalks',
+            'CryptoTalk',
+            'BeerMoneyForum',
+            'Twitter / X',
+            'Telegram',
+            'Discord',
+            'Reddit',
+            'Medium',
+            'Substack',
+            'GitHub',
+            'GitLab',
+            'LinkedIn',
+            'YouTube',
+            'TikTok',
+            'Threads',
+            'Mastodon',
+            'Matrix / Element',
+            'Facebook',
+            'Instagram',
+            'WhatsApp',
+            'CoinMarketCap',
+            'CoinGecko',
+            'CoinPaprika',
+            'CoinCodex',
+            'LiveCoinWatch',
+            'DexTools',
+            'DexScreener',
+            'CoinCheckup',
+            'MiningPoolStats',
+            'Official Website',
+            'Whitepaper',
+            'Explorer',
+            'Custom'
+          ];
+        %>
         <div class="admin-card">
           <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fa-solid fa-share-from-square" style="color: #3b82f6;"></i> Social Profiles & Price Trackers
+            <i class="fa-solid fa-share-from-square" style="color: #3b82f6;"></i> Social Profiles & Crypto Forums
           </h2>
           <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.5rem;">Add links with respective platforms from the dropdown. These will display in the footer with custom brand icons.</p>
 
@@ -567,37 +606,10 @@
               <% (settings.socialLinks || []).forEach((item, index) => { %>
                 <div class="dynamic-item-row">
                   <select name="platforms[]" class="form-control" style="width: 220px;">
-                <option value="CoinMarketCap">CoinMarketCap</option>
-                <option value="CoinGecko">CoinGecko</option>
-                <option value="CoinPaprika">CoinPaprika</option>
-                <option value="Bitcointalk">Bitcointalk</option>
-                <option value="Bitcoin Garden">Bitcoin Garden</option>
-                <option value="Altcointalks">Altcointalks</option>
-                <option value="CryptoTalk">CryptoTalk</option>
-                <option value="Twitter / X" selected>Twitter / X</option>
-                <option value="Telegram">Telegram</option>
-                <option value="Discord">Discord</option>
-                <option value="Reddit">Reddit</option>
-                <option value="Medium">Medium</option>
-                <option value="Substack">Substack</option>
-                <option value="GitHub">GitHub</option>
-                <option value="GitLab">GitLab</option>
-                <option value="LinkedIn">LinkedIn</option>
-                <option value="YouTube">YouTube</option>
-                <option value="TikTok">TikTok</option>
-                <option value="Threads">Threads</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Facebook">Facebook</option>
-                <option value="Instagram">Instagram</option>
-                <option value="Mastodon">Mastodon</option>
-                <option value="CoinCodex">CoinCodex</option>
-                <option value="LiveCoinWatch">LiveCoinWatch</option>
-                <option value="DexTools">DexTools</option>
-                <option value="DexScreener">DexScreener</option>
-                <option value="Official Website">Official Website</option>
-                <option value="Explorer">Explorer</option>
-                <option value="Custom">Custom</option>
-              </select>
+                    <% socialPlatforms.forEach(p => { %>
+                      <option value="<%= p %>" <%= (item.platform && item.platform.toLowerCase() === p.toLowerCase()) ? 'selected' : '' %>><%= p %></option>
+                    <% }); %>
+                  </select>
                   <input type="text" name="titles[]" class="form-control" value="<%= item.title %>" placeholder="Title / Label">
                   <input type="text" name="urls[]" class="form-control" value="<%= item.url %>" placeholder="https://..." required>
                   <button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
@@ -613,26 +625,19 @@
         </div>
 
         <script>
+          const availablePlatforms = <%- JSON.stringify(socialPlatforms) %>;
           function addSocialRow() {
             const container = document.getElementById('socialsContainer');
             const div = document.createElement('div');
             div.className = 'dynamic-item-row';
+            let optionsHtml = '';
+            availablePlatforms.forEach(p => {
+              const sel = (p === 'Bitcointalk') ? 'selected' : '';
+              optionsHtml += `<option value="${p}" ${sel}>${p}</option>`;
+            });
             div.innerHTML = `
               <select name="platforms[]" class="form-control" style="width: 220px;">
-                <option value="CoinMarketCap">CoinMarketCap</option>
-                <option value="CoinGecko">CoinGecko</option>
-                <option value="CoinPaprika">CoinPaprika</option>
-                <option value="Twitter / X" selected>Twitter / X</option>
-                <option value="Telegram">Telegram</option>
-                <option value="Discord">Discord</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Facebook">Facebook</option>
-                <option value="Instagram">Instagram</option>
-                <option value="YouTube">YouTube</option>
-                <option value="Reddit">Reddit</option>
-                <option value="GitHub">GitHub</option>
-                <option value="Official Website">Official Website</option>
-                <option value="Custom">Custom</option>
+                ${optionsHtml}
               </select>
               <input type="text" name="titles[]" class="form-control" placeholder="Title / Label">
               <input type="text" name="urls[]" class="form-control" placeholder="https://..." required>

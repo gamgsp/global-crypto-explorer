@@ -14,18 +14,22 @@ async function getRichlistData() {
 
   // Real-time verification of top balances via native daemon addressindex
   try {
-    const currentTop = db.getTopAddresses(100);
+    const currentTop = db.getTopAddresses(120);
     if (currentTop && currentTop.length > 0) {
-      await Promise.all(currentTop.slice(0, 50).map(async (row) => {
-        try {
-          const balData = await rpc.call('getaddressbalance', [{ addresses: [row.address] }]);
-          if (balData && typeof balData.balance === 'number') {
-            const bal = balData.balance / 1e8;
-            const rec = (balData.received || balData.balance) / 1e8;
-            db.saveAddressBalance(row.address, bal, rec, Math.max(0, rec - bal), 0);
-          }
-        } catch (e) {}
-      }));
+      const chunkSize = 20;
+      for (let i = 0; i < currentTop.length; i += chunkSize) {
+        const chunk = currentTop.slice(i, i + chunkSize);
+        await Promise.all(chunk.map(async (row) => {
+          try {
+            const balData = await rpc.call('getaddressbalance', [{ addresses: [row.address] }]);
+            if (balData && typeof balData.balance === 'number') {
+              const bal = balData.balance / 1e8;
+              const rec = (balData.received || balData.balance) / 1e8;
+              db.saveAddressBalance(row.address, bal, rec, Math.max(0, rec - bal), 0);
+            }
+          } catch (e) {}
+        }));
+      }
     }
   } catch (err) {}
 

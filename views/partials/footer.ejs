@@ -52,7 +52,11 @@
                   else if (p.includes('coinmarketcap') || p.includes('cmc')) iconClass = 'fa-solid fa-coins';
                   else if (p.includes('coingecko')) iconClass = 'fa-solid fa-dragon';
                   else if (p.includes('coinpaprika')) iconClass = 'fa-solid fa-pepper-hot';
-                  else if (p.includes('coincodex') || p.includes('dex') || p.includes('screener') || p.includes('watch')) iconClass = 'fa-solid fa-chart-line';
+                  else if (p.includes('coincodex') || p.includes('dex') || p.includes('screener') || p.includes('watch') || p.includes('checkup')) iconClass = 'fa-solid fa-chart-line';
+                  else if (p.includes('matrix') || p.includes('element')) iconClass = 'fa-solid fa-network-wired';
+                  else if (p.includes('whitepaper') || p.includes('doc')) iconClass = 'fa-solid fa-file-lines';
+                  else if (p.includes('mining') || p.includes('pool')) iconClass = 'fa-solid fa-server';
+                  else if (p.includes('explorer')) iconClass = 'fa-solid fa-compass';
               %>
                 <a href="<%= item.url %>" target="_blank" rel="noopener" class="social-link" title="<%= item.title || item.platform %>"><i class="<%= iconClass %>"></i></a>
               <% }); %>

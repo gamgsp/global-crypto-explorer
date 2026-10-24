@@ -5,7 +5,7 @@ const { blockCache, txCache } = require('./cache');
 class RpcClient {
   constructor() {
     this.idCounter = 1;
-    this.maxConcurrent = 4;
+    this.maxConcurrent = 25;
     this.activeRequests = 0;
     this.queue = [];
     this.inFlight = new Map();
