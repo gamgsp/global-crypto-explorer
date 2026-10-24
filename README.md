@@ -12,24 +12,25 @@ Engineered with **Node.js, Express, and Better-SQLite3**, it completely removes 
 ---
 
 ## 📑 Table of Contents
-- [Key Features](#-key-features)
-- [Project Architecture](#-project-architecture)
-- [Complete Tour of Explorer Pages](#-complete-tour-of-explorer-pages)
-- [Web Admin Control Panel Tour](#-web-admin-control-panel-tour)
-- [SQLite Database Architecture & Server Migration](#-sqlite-database-architecture--server-migration)
-- [Prerequisites](#-prerequisites)
-- [⚡ Universal 1-Click Automated Setup Script (`setup.sh`)](#-universal-1-click-automated-setup-script-setupsh)
-- [Manual Quick Start Installation](#-manual-quick-start-installation)
-- [First-Run Setup Wizard](#-first-run-setup-wizard)
-- [Web Server & Reverse Proxy Configurations](#-web-server--reverse-proxy-configurations)
+- [Key Features](#key-features)
+- [Project Architecture](#project-architecture)
+- [Complete Tour of Explorer Pages](#complete-tour-of-explorer-pages)
+- [Web Admin Control Panel Tour](#web-admin-control-panel-tour)
+- [SQLite Database Architecture & Server Migration](#sqlite-database-architecture-server-migration)
+- [Prerequisites](#prerequisites)
+- [⚡ Universal 1-Click Automated Setup Script (`setup.sh`)](#universal-1-click-automated-setup-script-setupsh)
+- [Manual Quick Start Installation](#manual-quick-start-installation)
+- [First-Run Setup Wizard](#first-run-setup-wizard)
+- [Web Server & Reverse Proxy Configurations](#web-server-reverse-proxy-configurations)
   - [Option 1: Nginx (Recommended)](#option-1-nginx-recommended)
   - [Option 2: Apache2](#option-2-apache2)
   - [Option 3: Caddy (Automatic SSL)](#option-3-caddy-automatic-ssl)
   - [Option 4: Cloudflare Tunnels (Zero Open Ports)](#option-4-cloudflare-tunnels-zero-open-ports)
-  - [Option 5: Direct Node.js (No Reverse Proxy) & Security Warning](#option-5-direct-nodejs-no-reverse-proxy--security-warning)
-- [Production Daemon Service (Systemd & PM2)](#-production-daemon-service-systemd--pm2)
-- [REST API Reference](#-rest-api-reference)
-- [License](#-license)
+  - [Option 5: Direct Node.js (No Reverse Proxy) & Security Warning](#option-5-direct-nodejs-no-reverse-proxy-security-warning)
+- [Production Daemon Service (Systemd & PM2)](#production-daemon-service-systemd-pm2)
+- [REST API Reference](#rest-api-reference)
+- [🏢 Developed By & Ecosystem Platforms](#developed-by-ecosystem-platforms)
+- [License](#license)
 
 ---
 
@@ -653,6 +654,50 @@ All endpoints return JSON or text and are accessible from `/ext/...` and `/api/.
 | `/ext/getsummary` | GET | Comprehensive market and network summary object |
 
 Visit `/info` in your browser for the full interactive API documentation.
+
+---
+
+---
+
+## 🏢 Developed By & Ecosystem Platforms
+
+**Global Crypto Explorer** is proudly developed and maintained by **[Global Ads Media, LLC](https://globaladsmedia.us)** in collaboration with the **[GSP Coin Team](https://gspcoin.us)**.
+
+Explore our ecosystem of platforms and digital services:
+
+### 🌟 [Global Ads Media, LLC](https://globaladsmedia.us)
+> **Premium Advertising Network & Comprehensive Digital Growth Solutions**
+>
+> [Global Ads Media, LLC](https://globaladsmedia.us) is an international digital advertising network and technology firm providing innovative ad formats, high-yield monetization for web publishers, programmatic advertising solutions, and advanced audience targeting for brands and media buyers worldwide.
+>
+> 🔗 **Website:** [https://globaladsmedia.us](https://globaladsmedia.us)
+
+---
+
+### 🪙 [GSP Coin (Global Stabilization Protocol)](https://gspcoin.us)
+> **Revolutionary Decentralized Cryptocurrency for Global Financial Freedom**
+>
+> [GSP Coin (GSPC)](https://gspcoin.us) is a next-generation proof-of-stake / masternode cryptocurrency engineered for global stabilization, transparent on-chain transactions, micro-rewards, and borderless peer-to-peer digital payments. Built for speed, security, and true financial independence.
+>
+> 🔗 **Website:** [https://gspcoin.us](https://gspcoin.us)
+
+---
+
+### ☁️ [1 Dollar Cloud](https://1dollarcloud.com)
+> **Ultra-Affordable Web Hosting, Cloud VPS & Domain Services**
+>
+> [1 Dollar Cloud](https://1dollarcloud.com) makes enterprise-grade web hosting accessible to everyone, starting at just $1/month. Offering ultra-fast NVMe SSD shared hosting, scalable Cloud VPS, dedicated bare-metal servers, domain registrations, SSL certificates, and 24/7 expert customer support.
+>
+> 🔗 **Website:** [https://1dollarcloud.com](https://1dollarcloud.com)
+
+---
+
+### 🔗 [1url.my](https://1url.my)
+> **100% Free URL Shortener, Custom Branded Links & Analytics**
+>
+> [1url.my](https://1url.my) is a blazing-fast, privacy-conscious URL shortening service. It empowers creators, marketers, and developers to create clean, trackable short links instantly with custom branded aliases, password protection, link expiration timers, instant QR codes, and in-depth click analytics—completely free with zero ads and zero subscriptions.
+>
+> 🔗 **Website:** [https://1url.my](https://1url.my)
 
 ---
 
