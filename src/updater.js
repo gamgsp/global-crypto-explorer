@@ -136,7 +136,7 @@ async function checkUpdate(force = false) {
 function runUpdate() {
   return new Promise((resolve, reject) => {
     const cwd = path.resolve(__dirname, '..');
-    const cmd = 'git fetch origin main && git reset --hard origin/main && npm install --omit=dev';
+    const cmd = 'git fetch origin main 2>&1 && git reset --hard origin/main 2>&1 && npm install --omit=dev 2>&1';
 
     exec(cmd, { cwd, timeout: 60000 }, (err, stdout, stderr) => {
       if (err) {
@@ -157,10 +157,11 @@ function runUpdate() {
         }
       }, 1500);
 
+      const verboseLog = [stdout, stderr].filter(Boolean).join('\n').trim();
       resolve({
         success: true,
-        output: stdout,
-        message: 'Update applied successfully! The service is restarting now...',
+        output: verboseLog,
+        message: 'Update applied successfully! The service is restarting with the new build...',
       });
     });
   });

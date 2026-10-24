@@ -845,6 +845,241 @@
         </div>
       <% } %>
 
+    
+      <!-- TAB 9: SYSTEM UPDATES & GITHUB SYNC -->
+      <% if (tab === 'updates') { %>
+        <% 
+          const localCommit = (updateInfo && updateInfo.local) ? updateInfo.local : { shortSha: 'HEAD', msg: 'Current Build', date: 'Active' };
+          const remoteCommit = (updateInfo && updateInfo.remote) ? updateInfo.remote : null;
+          const hasUpdate = (updateInfo && updateInfo.updateAvailable);
+        %>
+        <div class="admin-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-cloud-arrow-down" style="color: #38bdf8;"></i> System Updates & GitHub Sync
+              </h2>
+              <p style="color: #94a3b8; font-size: 0.88rem;">Inspect your server's active commit against the official GitHub repository and perform seamless 1-click updates.</p>
+            </div>
+            <button type="button" class="btn-outline" onclick="checkUpdatesNow()" id="btnCheckUpdates" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; font-size: 0.88rem; border-radius: 8px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; background: rgba(56, 189, 248, 0.08);">
+              <i class="fa-solid fa-arrows-rotate" id="checkSpinner"></i> Check for Updates
+            </button>
+          </div>
+
+          <!-- 3-Column Status Grid -->
+          <div class="stat-grid" style="margin-bottom: 2rem;">
+            <!-- Installed Server Commit -->
+            <div class="stat-card" style="border-left: 3px solid #3b82f6;">
+              <div class="stat-label"><i class="fa-solid fa-server"></i> Installed on Server</div>
+              <div class="stat-value mono text-primary" style="font-size: 1.3rem; margin: 0.4rem 0;">
+                <%= localCommit.shortSha %>
+                <span class="badge badge-cyan" style="font-size: 0.68rem; margin-left: 0.4rem; vertical-align: middle;">v<%= localCommit.version || '1.0.0' %></span>
+              </div>
+              <div class="stat-sub" style="color: #e2e8f0; font-weight: 500; font-size: 0.82rem; line-height: 1.4;">
+                <%= localCommit.msg %>
+              </div>
+              <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.4rem;">
+                <i class="fa-regular fa-clock"></i> <%= localCommit.date %>
+              </div>
+            </div>
+
+            <!-- Latest on GitHub -->
+            <div class="stat-card" style="border-left: 3px solid #38bdf8;">
+              <div class="stat-label"><i class="fa-brands fa-github"></i> Latest on GitHub</div>
+              <div class="stat-value mono text-cyan" style="font-size: 1.3rem; margin: 0.4rem 0;" id="remoteCommitSha">
+                <%= remoteCommit ? remoteCommit.shortSha : 'Querying...' %>
+                <% if (remoteCommit) { %>
+                  <a href="https://github.com/gamgsp/global-crypto-explorer/commit/<%= remoteCommit.sha %>" target="_blank" rel="noopener" style="font-size: 0.72rem; color: #38bdf8; text-decoration: underline; margin-left: 0.5rem;" title="View commit on GitHub">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Diff
+                  </a>
+                <% } %>
+              </div>
+              <div class="stat-sub" id="remoteCommitMsg" style="color: #e2e8f0; font-weight: 500; font-size: 0.82rem; line-height: 1.4;">
+                <%= remoteCommit ? remoteCommit.msg : 'Checking remote repository...' %>
+              </div>
+              <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.4rem;" id="remoteCommitMeta">
+                <% if (remoteCommit) { %>
+                  <i class="fa-regular fa-user"></i> <%= remoteCommit.author %> &bull; <%= new Date(remoteCommit.date).toLocaleDateString() %>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- System Update State -->
+            <div class="stat-card" style="border-left: 3px solid <%= hasUpdate ? '#f59e0b' : '#10b981' %>;">
+              <div class="stat-label"><i class="fa-solid fa-shield-halved"></i> Update Status</div>
+              <div class="stat-value mono" style="font-size: 1.15rem; margin: 0.4rem 0;" id="systemStatusText">
+                <% if (hasUpdate) { %>
+                  <span style="color: #f59e0b; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Update Available
+                  </span>
+                <% } else { %>
+                  <span style="color: #10b981; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-circle-check"></i> Up to Date
+                  </span>
+                <% } %>
+              </div>
+              <div class="stat-sub" style="font-size: 0.82rem; color: #94a3b8;">
+                <% if (hasUpdate) { %>
+                  New commits ready to pull from GitHub.
+                <% } else { %>
+                  Server is running the latest official build.
+                <% } %>
+              </div>
+              <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.4rem;">
+                Last checked: <span id="lastCheckedTime"><%= updateInfo ? updateInfo.checkedAt : 'Just now' %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Update Information & Action Card -->
+          <div id="updateActionBox" style="background: <%= hasUpdate ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(30, 41, 59, 0.6))' : 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(30, 41, 59, 0.6))' %>; border: 1px solid <%= hasUpdate ? 'rgba(245, 158, 11, 0.35)' : 'rgba(16, 185, 129, 0.25)' %>; border-radius: 14px; padding: 1.75rem; margin-bottom: 1.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+              <div style="flex: 1; min-width: 280px;">
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.6rem;">
+                  <% if (hasUpdate) { %>
+                    <i class="fa-solid fa-gift" style="color: #f59e0b;"></i> New Version Published on GitHub
+                  <% } else { %>
+                    <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Your Server is Fully Synchronized
+                  <% } %>
+                </h3>
+                <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.6rem;">
+                  <% if (hasUpdate && remoteCommit) { %>
+                    <strong>Update details:</strong> <span style="color: #38bdf8;"><%= remoteCommit.msg %></span> (commit <code><%= remoteCommit.shortSha %></code> by <%= remoteCommit.author %>).
+                  <% } else { %>
+                    Running commit <code><%= localCommit.shortSha %></code>. You are on the latest official build from <a href="https://github.com/gamgsp/global-crypto-explorer" target="_blank" rel="noopener" style="color: #38bdf8; text-decoration: underline;">gamgsp/global-crypto-explorer</a>.
+                  <% } %>
+                </p>
+                <div style="font-size: 0.8rem; color: #94a3b8;">
+                  <i class="fa-solid fa-info-circle"></i> Update automatically executes <code>git fetch origin main && git reset --hard origin/main && npm install --omit=dev</code> and restarts <code>global-crypto-explorer.service</code>.
+                </div>
+              </div>
+
+              <div>
+                <% if (hasUpdate) { %>
+                  <button type="button" class="btn-save" id="btnRunUpdate" onclick="applyUpdateNow()" style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none; font-size: 1rem; padding: 0.95rem 2rem; border-radius: 10px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45); display: inline-flex; align-items: center; gap: 0.6rem; color: #fff;">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Update App from GitHub Now
+                  </button>
+                <% } else { %>
+                  <button type="button" class="btn-outline" id="btnRunUpdate" onclick="applyUpdateNow()" style="border-color: rgba(56, 189, 248, 0.5); color: #38bdf8; font-size: 0.9rem; padding: 0.8rem 1.6rem; border-radius: 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(56, 189, 248, 0.08);">
+                    <i class="fa-solid fa-arrows-rotate"></i> Force Re-Sync / Update from GitHub
+                  </button>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verbose Live Terminal Progress Console Box -->
+          <div id="updateProgressConsole" style="display: none; background: #070a13; border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 1.5rem; margin-top: 1.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-weight: 700; font-size: 0.95rem; color: #38bdf8; display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-terminal"></i> Live Update Progress Console
+              </span>
+              <span class="badge badge-cyan" id="updateProgressBadge" style="padding: 4px 10px; font-size: 0.75rem;">
+                <span class="pulse-dot"></span> In Progress...
+              </span>
+            </div>
+
+            <pre id="updateTerminalLog" style="background: rgba(0, 0, 0, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 1.25rem; color: #4ade80; font-family: var(--font-mono, 'JetBrains Mono', monospace); font-size: 0.82rem; line-height: 1.55; max-height: 280px; overflow-y: auto; white-space: pre-wrap; margin: 0;">Initiating GitHub update process...</pre>
+
+            <div id="updateRestartNotice" style="display: none; margin-top: 1.25rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 1rem; color: #facc15; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem;">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.2rem;"></i>
+              <div>
+                Service is restarting with the new build. Automatically reconnecting in <span id="restartSeconds" style="font-size: 1.1rem; color: #fff; font-weight: 800;">5</span>s...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          async function checkUpdatesNow() {
+            const btn = document.getElementById('btnCheckUpdates');
+            const spinner = document.getElementById('checkSpinner');
+            if (spinner) spinner.className = 'fa-solid fa-spinner fa-spin';
+            if (btn) btn.disabled = true;
+
+            try {
+              const res = await fetch('/<%= adminSlug %>/check-update');
+              const data = await res.json();
+              if (data.success) {
+                window.location.href = '/<%= adminSlug %>?tab=updates&msg=' + encodeURIComponent(data.updateAvailable ? 'New update detected on GitHub: ' + (data.remote ? data.remote.shortSha : '') : 'Your system is fully up to date!');
+              } else {
+                alert('Update check failed: ' + (data.error || 'Unknown error'));
+              }
+            } catch (err) {
+              alert('Network error while checking updates from GitHub.');
+            } finally {
+              if (spinner) spinner.className = 'fa-solid fa-arrows-rotate';
+              if (btn) btn.disabled = false;
+            }
+          }
+
+          async function applyUpdateNow() {
+            if (!confirm('Are you sure you want to update the Global Crypto Explorer to the latest GitHub build?\\n\\nThe app will fetch latest commits, install dependencies, and cleanly restart the service.')) {
+              return;
+            }
+
+            const btn = document.getElementById('btnRunUpdate');
+            const consoleBox = document.getElementById('updateProgressConsole');
+            const terminalLog = document.getElementById('updateTerminalLog');
+            const restartNotice = document.getElementById('updateRestartNotice');
+            const progressBadge = document.getElementById('updateProgressBadge');
+
+            if (btn) btn.disabled = true;
+            if (consoleBox) {
+              consoleBox.style.display = 'block';
+              consoleBox.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            terminalLog.textContent = '[Step 1/3] Connecting to official GitHub repository (gamgsp/global-crypto-explorer)...\\n';
+            terminalLog.textContent += '[Step 2/3] Executing: git fetch origin main && git reset --hard origin/main && npm install --omit=dev...\\n\\n';
+
+            try {
+              const res = await fetch('/<%= adminSlug %>/apply-update', { method: 'POST' });
+              const data = await res.json();
+
+              if (data.success) {
+                terminalLog.textContent += '=== VERBOSE OUTPUT FROM GIT & NPM ===\\n';
+                if (data.output) {
+                  terminalLog.textContent += data.output + '\\n';
+                }
+                terminalLog.textContent += '\\n[Step 3/3] ' + data.message + '\\n';
+                
+                if (progressBadge) {
+                  progressBadge.className = 'badge badge-success';
+                  progressBadge.textContent = 'Restarting Service';
+                }
+                if (restartNotice) {
+                  restartNotice.style.display = 'flex';
+                }
+
+                let sec = 5;
+                const secEl = document.getElementById('restartSeconds');
+                const interval = setInterval(() => {
+                  sec--;
+                  if (secEl) secEl.textContent = sec;
+                  if (sec <= 0) {
+                    clearInterval(interval);
+                    window.location.href = '/<%= adminSlug %>?tab=updates&msg=' + encodeURIComponent('Successfully updated to the latest build!');
+                  }
+                }, 1000);
+              } else {
+                terminalLog.textContent += '\\n[ERROR] Update failed:\\n' + (data.error || 'Unknown error');
+                if (progressBadge) {
+                  progressBadge.className = 'badge badge-danger';
+                  progressBadge.textContent = 'Failed';
+                }
+                if (btn) btn.disabled = false;
+              }
+            } catch (err) {
+              terminalLog.textContent += '\\n[NOTICE] Connection closed as server restarted with new build.\\nReconnecting...';
+              setTimeout(() => {
+                window.location.href = '/<%= adminSlug %>?tab=updates&msg=' + encodeURIComponent('Service restarted successfully with new build!');
+              }, 4000);
+            }
+          }
+        </script>
+      <% } %>
+
     </main>
   </div>
 </body>
