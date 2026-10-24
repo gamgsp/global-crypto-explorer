@@ -290,15 +290,54 @@ async function syncBlockchain() {
   }
 }
 
+// Dedicated 1-minute comprehensive RPC sync & verification routine
+async function syncPeriodicMinute() {
+  try {
+    const tip = await rpc.call('getblockcount');
+    if (typeof tip !== 'number' || tip <= 0) return;
+
+    const currentMax = db.getMaxBlockHeight() || 0;
+
+    // 1. Catch up newly mined blocks
+    if (tip > currentMax) {
+      console.log(`[Indexer 1-Min Sync] Detected ${tip - currentMax} new block(s) (height ${currentMax + 1} to ${tip}). Syncing...`);
+      await indexRecentBlockRange(currentMax + 1, tip);
+    }
+
+    // 2. Health check: verify no missing block gaps in the last 100 blocks
+    const checkStart = Math.max(1, tip - 100);
+    const existingCount = db.db.prepare('SELECT COUNT(1) as c FROM blocks WHERE height >= ? AND height <= ?').get(checkStart, tip)?.c || 0;
+    const expected = (tip - checkStart + 1);
+    if (existingCount < expected) {
+      console.log(`[Indexer 1-Min Sync] Detected missing blocks in recent window (${existingCount}/${expected}). Backfilling...`);
+      await indexRecentBlockRange(checkStart, tip);
+    }
+
+    // 3. Re-verify & synchronize LevelDB balances for top richlist addresses every minute
+    const topRows = db.db.prepare('SELECT address FROM addresses ORDER BY balance DESC LIMIT 150').all();
+    if (topRows && topRows.length > 0) {
+      const addrs = topRows.map(r => r.address);
+      await fetchAndSaveAddressBalances(addrs);
+    }
+
+    console.log(`[Indexer 1-Min Sync] SQLite in sync with daemon RPC. Current Tip: ${tip}, Max Indexed: ${Math.max(currentMax, tip)}.`);
+  } catch (err) {
+    console.error('[Indexer 1-Min Sync] Periodic sync error:', err.message);
+  }
+}
+
 function startIndexer() {
   syncBlockchain();
-  // Poll frequently (every 10s) to keep SQLite in sync with daemon in real time
+  // Fast 10-second check for newly mined blocks
   setInterval(syncBlockchain, 10000);
+  // Mandatory 1-minute full RPC sync: blocks, gap check & address balance verification
+  setInterval(syncPeriodicMinute, 60000);
 }
 
 module.exports = {
   startIndexer,
   syncBlockchain,
+  syncPeriodicMinute,
   fastBootstrapChartHistory,
   bootstrapWhaleMovements,
   indexRecentBlockRange,

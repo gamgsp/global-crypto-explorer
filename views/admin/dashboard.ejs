@@ -588,41 +588,41 @@
       <% if (tab === 'socials') { %>
         <% 
           const socialPlatforms = [
-            'Bitcointalk',
-            'Bitcoin Garden',
             'Altcointalks',
-            'CryptoTalk',
             'BeerMoneyForum',
-            'Twitter / X',
-            'Telegram',
+            'Bitcoin Garden',
+            'Bitcointalk',
+            'CoinCheckup',
+            'CoinCodex',
+            'CoinGecko',
+            'CoinMarketCap',
+            'CoinPaprika',
+            'CryptoTalk',
+            'Custom',
+            'DexScreener',
+            'DexTools',
             'Discord',
-            'Reddit',
-            'Medium',
-            'Substack',
+            'Explorer',
+            'Facebook',
             'GitHub',
             'GitLab',
+            'Instagram',
             'LinkedIn',
-            'YouTube',
-            'TikTok',
-            'Threads',
+            'LiveCoinWatch',
             'Mastodon',
             'Matrix / Element',
-            'Facebook',
-            'Instagram',
-            'WhatsApp',
-            'CoinMarketCap',
-            'CoinGecko',
-            'CoinPaprika',
-            'CoinCodex',
-            'LiveCoinWatch',
-            'DexTools',
-            'DexScreener',
-            'CoinCheckup',
+            'Medium',
             'MiningPoolStats',
             'Official Website',
+            'Reddit',
+            'Substack',
+            'Telegram',
+            'Threads',
+            'TikTok',
+            'Twitter / X',
+            'WhatsApp',
             'Whitepaper',
-            'Explorer',
-            'Custom'
+            'YouTube'
           ];
         %>
         <div class="admin-card">
@@ -662,7 +662,7 @@
             div.className = 'dynamic-item-row';
             let optionsHtml = '';
             availablePlatforms.forEach(p => {
-              const sel = (p === 'Bitcointalk') ? 'selected' : '';
+              const sel = (p === 'Altcointalks') ? 'selected' : '';
               optionsHtml += `<option value="${p}" ${sel}>${p}</option>`;
             });
             div.innerHTML = `
