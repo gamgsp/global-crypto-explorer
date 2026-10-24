@@ -260,13 +260,22 @@
   <div class="admin-layout">
     <!-- LEFT SIDEBAR -->
     <aside class="admin-sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo-icon">
-          <i class="fa-solid fa-gear" style="color: #fff; font-size: 1.2rem;"></i>
-        </div>
+      <div class="sidebar-header" style="display: flex; align-items: center; gap: 0.85rem;">
+        <% if (coin.logo && coin.logo.trim()) { %>
+          <div class="sidebar-logo-icon" style="background: transparent; box-shadow: none; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px;">
+            <img src="<%= coin.logo %>" alt="<%= coin.name %>" style="width: 42px; height: 42px; object-fit: contain; border-radius: 10px; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div style="display: none; width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #10b981, #3b82f6); align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+              <i class="fa-solid fa-gear" style="color: #fff; font-size: 1.2rem;"></i>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="sidebar-logo-icon">
+            <i class="fa-solid fa-gear" style="color: #fff; font-size: 1.2rem;"></i>
+          </div>
+        <% } %>
         <div>
-          <div style="font-weight: 800; font-size: 1.05rem; color: #fff;">Admin Portal</div>
-          <div style="font-size: 0.75rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
+          <div style="font-weight: 800; font-size: 1.05rem; color: #fff; line-height: 1.25;">Admin Portal</div>
+          <div style="font-size: 0.78rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; margin-top: 2px;">
             <strong style="color: #10b981;"><%= coin.name %></strong>
           </div>
         </div>

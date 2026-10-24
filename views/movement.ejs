@@ -5,17 +5,19 @@
     <div class="card-title">
       <i class="fa-solid fa-money-bill-transfer" style="color: var(--primary);"></i> Top 100 Coin Movements (&gt; 1M <%= coin.symbol %>)
     </div>
-    <span class="badge badge-warning">High to Low</span>
+    <span class="badge badge-warning" id="movementSortBadge">High to Low</span>
   </div>
 
   <div class="table-responsive">
-    <table class="custom-table">
+    <table class="custom-table" id="movementsTable">
       <thead>
         <tr>
           <th>Rank</th>
           <th>Transaction ID</th>
           <th>Block Height</th>
-          <th>Amount Transferred</th>
+          <th style="cursor: pointer; user-select: none;" onclick="toggleMovementSort()" id="thMovementAmount" title="Click to sort by Amount Transferred (High to Low / Low to High)">
+            Amount Transferred <i class="fa-solid fa-sort-down" id="sortIconMovement" style="margin-left: 0.35rem; font-size: 0.8rem; color: #10b981;"></i>
+          </th>
           <th>Age</th>
         </tr>
       </thead>
@@ -24,7 +26,7 @@
           <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Scanning blocks for coin movements...</td></tr>
         <% } else { %>
           <% txs.forEach((tx, idx) => { %>
-            <tr>
+            <tr data-amount="<%= tx.rawAmount || 0 %>">
               <td class="mono font-bold" style="color: <%= idx < 3 ? 'var(--primary)' : 'var(--text-muted)' %>;">
                 <%= ['🥇', '🥈', '🥉'][idx] || ('#' + (idx + 1)) %>
               </td>
@@ -44,5 +46,57 @@
     </table>
   </div>
 </div>
+
+<script>
+  let movementSortDir = 'desc';
+  function toggleMovementSort() {
+    const table = document.getElementById('movementsTable');
+    if (!table) return;
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.querySelector('td[colspan]'));
+    if (rows.length === 0) return;
+
+    const icon = document.getElementById('sortIconMovement');
+    const badge = document.getElementById('movementSortBadge');
+
+    if (movementSortDir === 'desc') {
+      movementSortDir = 'asc';
+      if (icon) {
+        icon.className = 'fa-solid fa-sort-up';
+        icon.style.color = '#38bdf8';
+      }
+      if (badge) {
+        badge.textContent = 'Low to High';
+        badge.className = 'badge badge-cyan';
+      }
+    } else {
+      movementSortDir = 'desc';
+      if (icon) {
+        icon.className = 'fa-solid fa-sort-down';
+        icon.style.color = '#10b981';
+      }
+      if (badge) {
+        badge.textContent = 'High to Low';
+        badge.className = 'badge badge-warning';
+      }
+    }
+
+    rows.sort((a, b) => {
+      const aVal = parseFloat(a.getAttribute('data-amount')) || 0;
+      const bVal = parseFloat(b.getAttribute('data-amount')) || 0;
+      return movementSortDir === 'asc' ? (aVal - bVal) : (bVal - aVal);
+    });
+
+    const medals = ['🥇', '🥈', '🥉'];
+    rows.forEach((row, i) => {
+      const rankCell = row.cells[0];
+      if (rankCell) {
+        rankCell.textContent = medals[i] || ('#' + (i + 1));
+        rankCell.style.color = i < 3 ? 'var(--primary)' : 'var(--text-muted)';
+      }
+      tbody.appendChild(row);
+    });
+  }
+</script>
 
 <%- include('partials/footer') %>

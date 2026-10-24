@@ -49,14 +49,20 @@
   </div>
 
   <div class="table-responsive">
-    <table class="custom-table">
+    <table class="custom-table" id="richlistTable">
       <thead>
         <tr>
           <th>Rank</th>
           <th>Address</th>
-          <th>Balance</th>
-          <th>% of Supply</th>
-          <th>Total Received</th>
+          <th style="cursor: pointer; user-select: none;" onclick="toggleRichlistSort('balance')" id="thRichBalance" title="Sort by Balance (High to Low / Low to High)">
+            Balance <i class="fa-solid fa-sort-down" id="sortIconRichBalance" style="margin-left: 0.35rem; font-size: 0.8rem; color: #10b981;"></i>
+          </th>
+          <th style="cursor: pointer; user-select: none;" onclick="toggleRichlistSort('percent')" id="thRichPercent" title="Sort by % of Supply (High to Low / Low to High)">
+            % of Supply <i class="fa-solid fa-sort" id="sortIconRichPercent" style="margin-left: 0.35rem; font-size: 0.8rem; opacity: 0.6;"></i>
+          </th>
+          <th style="cursor: pointer; user-select: none;" onclick="toggleRichlistSort('received')" id="thRichReceived" title="Sort by Total Received (High to Low / Low to High)">
+            Total Received <i class="fa-solid fa-sort" id="sortIconRichReceived" style="margin-left: 0.35rem; font-size: 0.8rem; opacity: 0.6;"></i>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -64,7 +70,7 @@
           <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Syncing on-chain address balances into local database...</td></tr>
         <% } else { %>
           <% richlist.forEach(r => { %>
-            <tr>
+            <tr data-balance="<%= r.balanceRaw || 0 %>" data-percent="<%= r.percentRaw || r.percent || 0 %>" data-received="<%= r.receivedRaw || 0 %>">
               <td class="mono font-bold" style="color: <%= r.rank <= 3 ? 'var(--primary)' : 'var(--text-muted)' %>;">
                 <%= ['🥇', '🥈', '🥉'][r.rank - 1] || ('#' + r.rank) %>
               </td>
@@ -91,17 +97,19 @@
     <div class="card-title">
       <i class="fa-solid fa-money-bill-transfer" style="color: #facc15;"></i> Top 100 Largest Movements (&gt; 1M <%= coin.symbol %>)
     </div>
-    <span class="badge badge-warning">High to Low</span>
+    <span class="badge badge-warning" id="richMoveBadge">High to Low</span>
   </div>
 
   <div class="table-responsive">
-    <table class="custom-table">
+    <table class="custom-table" id="richMoveTable">
       <thead>
         <tr>
           <th>Rank</th>
           <th>Transaction ID</th>
           <th>Block Height</th>
-          <th>Amount Transferred</th>
+          <th style="cursor: pointer; user-select: none;" onclick="toggleRichMoveSort()" id="thRichMoveAmount" title="Click to sort by Amount Transferred (High to Low / Low to High)">
+            Amount Transferred <i class="fa-solid fa-sort-down" id="sortIconRichMove" style="margin-left: 0.35rem; font-size: 0.8rem; color: #10b981;"></i>
+          </th>
           <th>Age</th>
         </tr>
       </thead>
@@ -110,7 +118,7 @@
           <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No transactions recorded yet.</td></tr>
         <% } else { %>
           <% topMovements.forEach((tx, idx) => { %>
-            <tr>
+            <tr data-amount="<%= tx.rawAmount || 0 %>">
               <td class="mono font-bold" style="color: <%= idx < 3 ? 'var(--primary)' : 'var(--text-muted)' %>;">
                 <%= ['🥇', '🥈', '🥉'][idx] || ('#' + (idx + 1)) %>
               </td>
@@ -130,5 +138,106 @@
     </table>
   </div>
 </div>
+
+<script>
+  let currentRichCol = 'balance';
+  let richSortDir = 'desc';
+
+  function toggleRichlistSort(col) {
+    const table = document.getElementById('richlistTable');
+    if (!table) return;
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.querySelector('td[colspan]'));
+    if (rows.length === 0) return;
+
+    const cols = ['balance', 'percent', 'received'];
+    if (currentRichCol === col) {
+      richSortDir = richSortDir === 'desc' ? 'asc' : 'desc';
+    } else {
+      currentRichCol = col;
+      richSortDir = 'desc';
+    }
+
+    cols.forEach(c => {
+      const icon = document.getElementById('sortIconRich' + c.charAt(0).toUpperCase() + c.slice(1));
+      if (!icon) return;
+      if (c === currentRichCol) {
+        icon.className = richSortDir === 'asc' ? 'fa-solid fa-sort-up' : 'fa-solid fa-sort-down';
+        icon.style.color = richSortDir === 'asc' ? '#38bdf8' : '#10b981';
+        icon.style.opacity = '1';
+      } else {
+        icon.className = 'fa-solid fa-sort';
+        icon.style.color = '';
+        icon.style.opacity = '0.6';
+      }
+    });
+
+    rows.sort((a, b) => {
+      const aVal = parseFloat(a.getAttribute('data-' + currentRichCol)) || 0;
+      const bVal = parseFloat(b.getAttribute('data-' + currentRichCol)) || 0;
+      return richSortDir === 'asc' ? (aVal - bVal) : (bVal - aVal);
+    });
+
+    const medals = ['🥇', '🥈', '🥉'];
+    rows.forEach((row, i) => {
+      const rankCell = row.cells[0];
+      if (rankCell) {
+        rankCell.textContent = medals[i] || ('#' + (i + 1));
+        rankCell.style.color = i < 3 ? 'var(--primary)' : 'var(--text-muted)';
+      }
+      tbody.appendChild(row);
+    });
+  }
+
+  let richMoveSortDir = 'desc';
+  function toggleRichMoveSort() {
+    const table = document.getElementById('richMoveTable');
+    if (!table) return;
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.querySelector('td[colspan]'));
+    if (rows.length === 0) return;
+
+    const icon = document.getElementById('sortIconRichMove');
+    const badge = document.getElementById('richMoveBadge');
+
+    if (richMoveSortDir === 'desc') {
+      richMoveSortDir = 'asc';
+      if (icon) {
+        icon.className = 'fa-solid fa-sort-up';
+        icon.style.color = '#38bdf8';
+      }
+      if (badge) {
+        badge.textContent = 'Low to High';
+        badge.className = 'badge badge-cyan';
+      }
+    } else {
+      richMoveSortDir = 'desc';
+      if (icon) {
+        icon.className = 'fa-solid fa-sort-down';
+        icon.style.color = '#10b981';
+      }
+      if (badge) {
+        badge.textContent = 'High to Low';
+        badge.className = 'badge badge-warning';
+      }
+    }
+
+    rows.sort((a, b) => {
+      const aVal = parseFloat(a.getAttribute('data-amount')) || 0;
+      const bVal = parseFloat(b.getAttribute('data-amount')) || 0;
+      return richMoveSortDir === 'asc' ? (aVal - bVal) : (bVal - aVal);
+    });
+
+    const medals = ['🥇', '🥈', '🥉'];
+    rows.forEach((row, i) => {
+      const rankCell = row.cells[0];
+      if (rankCell) {
+        rankCell.textContent = medals[i] || ('#' + (i + 1));
+        rankCell.style.color = i < 3 ? 'var(--primary)' : 'var(--text-muted)';
+      }
+      tbody.appendChild(row);
+    });
+  }
+</script>
 
 <%- include('partials/footer') %>

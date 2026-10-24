@@ -22,7 +22,9 @@
         <tr>
           <th>#</th>
           <th>IP Address</th>
-          <th>Status</th>
+          <th style="cursor: pointer; user-select: none;" onclick="toggleMasternodeSort('status')" id="thStatus" title="Click to sort alphabetically by Status (A-Z / Z-A)">
+            Status <i class="fa-solid fa-sort" id="sortIconStatus" style="margin-left: 0.35rem; font-size: 0.8rem; opacity: 0.7;"></i>
+          </th>
           <th>Linked Wallet Address</th>
           <th>Last Seen</th>
           <th>Active Blocks</th>
@@ -73,6 +75,45 @@
       r.style.display = text.includes(val) ? '' : 'none';
     });
   });
+
+  let mnSortDir = null;
+  function toggleMasternodeSort(col) {
+    const table = document.getElementById('masternodesTable');
+    if (!table) return;
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.querySelector('td[colspan]'));
+    if (rows.length === 0) return;
+
+    const icon = document.getElementById('sortIconStatus');
+    if (mnSortDir === 'asc') {
+      mnSortDir = 'desc';
+      if (icon) {
+        icon.className = 'fa-solid fa-sort-down';
+        icon.style.opacity = '1';
+        icon.style.color = '#38bdf8';
+      }
+    } else {
+      mnSortDir = 'asc';
+      if (icon) {
+        icon.className = 'fa-solid fa-sort-up';
+        icon.style.opacity = '1';
+        icon.style.color = '#38bdf8';
+      }
+    }
+
+    rows.sort((a, b) => {
+      const aVal = (a.cells[2]?.textContent || '').trim().toUpperCase();
+      const bVal = (b.cells[2]?.textContent || '').trim().toUpperCase();
+      return mnSortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+
+    rows.forEach((row, i) => {
+      if (row.cells[0]) {
+        row.cells[0].textContent = (i + 1);
+      }
+      tbody.appendChild(row);
+    });
+  }
 </script>
 
 <%- include('partials/footer') %>

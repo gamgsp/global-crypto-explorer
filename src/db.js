@@ -255,7 +255,9 @@ module.exports = {
         balance: bal.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 8 }),
         balanceRaw: bal,
         percent,
+        percentRaw: parseFloat(percent) || 0,
         received: (item.received || bal).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 8 }),
+        receivedRaw: (item.received || bal),
       });
     }
 
