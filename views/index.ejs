@@ -95,56 +95,52 @@
   </div>
 </div>
 
-<!-- Latest Blocks & Transactions Dual Section with Symmetrical Height and Pixel Alignment -->
+<!-- Latest Blocks & Transactions Dual Section with Pixel-Perfect Alignment -->
 <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; align-items: stretch;">
   <!-- Latest Blocks Card -->
-  <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-    <div>
-      <div class="glass-card-header" style="height: 52px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-        <div class="card-title">
-          <i class="fa-solid fa-cubes" style="color: var(--primary);"></i> Latest Blocks
-        </div>
-        <span class="badge badge-success"><span class="pulse-dot"></span> Live</span>
+  <div class="glass-card dual-table-card" style="display: flex; flex-direction: column; height: 100%;">
+    <div class="glass-card-header" style="height: 52px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; box-sizing: border-box;">
+      <div class="card-title">
+        <i class="fa-solid fa-cubes" style="color: var(--primary);"></i> Latest Blocks
       </div>
+      <span class="badge badge-success"><span class="pulse-dot"></span> Live</span>
+    </div>
 
-      <div class="table-responsive" style="min-height: 480px;">
-        <table class="custom-table aligned-table">
-          <thead>
-            <tr style="height: 42px;">
-              <th>Height</th>
-              <th>Block Hash</th>
-              <th>Txs</th>
-              <th>Size</th>
-              <th>Age</th>
-            </tr>
-          </thead>
-          <tbody id="latestBlocksBody">
-            <% if (latestBlocks.length === 0) { %>
-              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 3rem;">Loading latest blocks...</td></tr>
-            <% } else { %>
-              <% latestBlocks.forEach(b => { %>
-                <tr style="height: 44px;">
-                  <td class="mono font-bold">
-                    <a href="/block/<%= b.height %>" class="height-link">#<%= b.height %></a>
-                  </td>
-                  <td class="mono">
-                    <a href="/block/<%= b.hash %>" class="address-link" title="<%= b.hash %>">
-                      <%= b.hash %>
-                    </a>
-                  </td>
-                  <td><span class="badge badge-cyan"><%= b.txCount %> txs</span></td>
-                  <td class="mono" style="color: var(--text-muted);"><%= b.formattedSize %></td>
-                  <td style="color: var(--text-muted);"><%= b.formattedAge || (b.age + "s ago") %></td>
-                </tr>
-              <% }); %>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
+    <div class="table-responsive" style="flex: 1 1 auto; overflow-x: auto;">
+      <table class="custom-table aligned-table">
+        <thead>
+          <tr>
+            <th style="width: 90px;">Height</th>
+            <th>Block Hash</th>
+            <th style="width: 85px;">Txs</th>
+            <th style="width: 85px;">Size</th>
+            <th style="width: 80px; text-align: right;">Age</th>
+          </tr>
+        </thead>
+        <tbody id="latestBlocksBody">
+          <% if (latestBlocks.length === 0) { %>
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); height: 200px;">Loading latest blocks...</td></tr>
+          <% } else { %>
+            <% latestBlocks.forEach(b => { %>
+              <tr>
+                <td class="mono font-bold">
+                  <a href="/block/<%= b.height %>" class="height-link">#<%= b.height %></a>
+                </td>
+                <td class="mono">
+                  <a href="/block/<%= b.hash %>" class="address-link" title="<%= b.hash %>"><%= b.hash %></a>
+                </td>
+                <td><span class="badge badge-cyan" style="padding: 0.15rem 0.5rem; font-size: 0.7rem; line-height: 1;"><%= b.txCount %> txs</span></td>
+                <td class="mono" style="color: var(--text-muted);"><%= b.formattedSize %></td>
+                <td style="color: var(--text-muted); text-align: right;"><%= b.formattedAge || (b.age + "s ago") %></td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
     </div>
 
     <!-- Blocks Pagination Controls -->
-    <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color); height: 48px;">
+    <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border-color); height: 48px; box-sizing: border-box;">
       <% if (pagination.blockPage > 1) { %>
         <a href="/?blockPage=<%= pagination.blockPage - 1 %>&txPage=<%= pagination.txPage %>" class="btn btn-sm btn-outline"><i class="fa-solid fa-chevron-left"></i> Previous</a>
       <% } else { %>
@@ -162,53 +158,49 @@
   </div>
 
   <!-- Recent Transactions Card -->
-  <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-    <div>
-      <div class="glass-card-header" style="height: 52px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-        <div class="card-title">
-          <i class="fa-solid fa-bolt" style="color: #facc15;"></i> Recent Transactions
-        </div>
-        <span class="badge badge-warning"><span class="pulse-dot"></span> Active</span>
+  <div class="glass-card dual-table-card" style="display: flex; flex-direction: column; height: 100%;">
+    <div class="glass-card-header" style="height: 52px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; box-sizing: border-box;">
+      <div class="card-title">
+        <i class="fa-solid fa-bolt" style="color: #facc15;"></i> Recent Transactions
       </div>
+      <span class="badge badge-warning"><span class="pulse-dot"></span> Active</span>
+    </div>
 
-      <div class="table-responsive" style="min-height: 480px;">
-        <table class="custom-table aligned-table">
-          <thead>
-            <tr style="height: 42px;">
-              <th>TxID</th>
-              <th>Block</th>
-              <th>Value</th>
-              <th>Age</th>
-            </tr>
-          </thead>
-          <tbody id="recentTxsBody">
-            <% if (recentTxs.length === 0) { %>
-              <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 3rem;">No recent transactions in these blocks.</td></tr>
-            <% } else { %>
-              <% recentTxs.forEach(t => { %>
-                <tr style="height: 44px;">
-                  <td class="mono">
-                    <a href="/tx/<%= t.txid %>" class="address-link" title="<%= t.txid %>">
-                      <%= t.txid %>
-                    </a>
-                  </td>
-                  <td class="mono">
-                    <a href="/block/<%= t.height %>">#<%= t.height %></a>
-                  </td>
-                  <td class="mono" style="font-weight: 600; color: #4ade80;">
-                    <%= (typeof t.total_out === 'number' ? t.total_out.toFixed(4) : (t.total_out || '0.0000')) %> <%= coin.symbol %>
-                  </td>
-                  <td style="color: var(--text-muted);"><%= t.formattedAge || (t.age ? t.age + "s ago" : "Just now") %></td>
-                </tr>
-              <% }); %>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
+    <div class="table-responsive" style="flex: 1 1 auto; overflow-x: auto;">
+      <table class="custom-table aligned-table">
+        <thead>
+          <tr>
+            <th>TxID</th>
+            <th style="width: 95px;">Block</th>
+            <th style="width: 140px;">Value</th>
+            <th style="width: 80px; text-align: right;">Age</th>
+          </tr>
+        </thead>
+        <tbody id="recentTxsBody">
+          <% if (recentTxs.length === 0) { %>
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); height: 200px;">No recent transactions in these blocks.</td></tr>
+          <% } else { %>
+            <% recentTxs.forEach(t => { %>
+              <tr>
+                <td class="mono font-bold">
+                  <a href="/tx/<%= t.txid %>" class="address-link" title="<%= t.txid %>"><%= t.txid %></a>
+                </td>
+                <td class="mono">
+                  <a href="/block/<%= t.height %>" class="height-link">#<%= t.height %></a>
+                </td>
+                <td class="mono" style="font-weight: 600; color: #4ade80;">
+                  <%= t.formattedValue || (typeof t.total_out === 'number' ? t.total_out.toFixed(4) : (t.total_out || '0.0000')) %> <%= coin.symbol %>
+                </td>
+                <td style="color: var(--text-muted); text-align: right;"><%= t.formattedAge || (t.age ? t.age + "s ago" : "Just now") %></td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
     </div>
 
     <!-- Transactions Pagination Controls -->
-    <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color); height: 48px;">
+    <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border-color); height: 48px; box-sizing: border-box;">
       <% if (pagination.txPage > 1) { %>
         <a href="/?blockPage=<%= pagination.blockPage %>&txPage=<%= pagination.txPage - 1 %>" class="btn btn-sm btn-outline"><i class="fa-solid fa-chevron-left"></i> Previous</a>
       <% } else { %>

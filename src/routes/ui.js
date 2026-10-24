@@ -67,14 +67,18 @@ router.get('/', async (req, res) => {
       }));
 
       const dbTxs = db.getRecentTransactions(txsPerPage, (txPage - 1) * txsPerPage);
-      allRecentTxs = (dbTxs || []).map(t => ({
-        txid: t.txid,
-        height: t.blockheight,
-        time: t.time,
-        total_out: t.total_out,
-        age: Math.max(0, Math.floor(Date.now() / 1000 - t.time)),
-        formattedAge: formatAge(t.time),
-      }));
+      allRecentTxs = (dbTxs || []).map(t => {
+        const val = typeof t.total_out === 'number' ? t.total_out : parseFloat(t.total_out || 0);
+        return {
+          txid: t.txid,
+          height: t.blockheight,
+          time: t.time,
+          total_out: val,
+          formattedValue: val > 0 ? (val >= 1000 ? val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : val.toFixed(4)) : '0.0000',
+          age: Math.max(0, Math.floor(Date.now() / 1000 - t.time)),
+          formattedAge: formatAge(t.time),
+        };
+      });
     } else {
       const startBlock = Math.max(0, tipHeight - (blockPage - 1) * blocksPerPage);
       for (let h = startBlock; h > Math.max(0, startBlock - blocksPerPage); h--) {

@@ -821,3 +821,47 @@ a:hover {
     max-width: 180px;
   }
 }
+
+/* Pixel-Perfect Aligned Tables for Dashboard Dual Grid */
+.aligned-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.aligned-table thead tr {
+  height: 44px;
+}
+
+.aligned-table th {
+  height: 44px;
+  padding: 0 0.85rem;
+  vertical-align: middle;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-card);
+  box-sizing: border-box;
+}
+
+.aligned-table tbody tr {
+  height: 48px;
+  box-sizing: border-box;
+}
+
+.aligned-table td {
+  height: 48px;
+  padding: 0 0.85rem;
+  vertical-align: middle;
+  font-size: 0.84rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  box-sizing: border-box;
+}
+
+.dual-table-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

@@ -24,19 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${years}y ago`;
   }
 
-  // 1-Minute (60-second) Auto-refresh timer with visible badge countdown
-  let countdown = 60;
-  const refreshBadge = document.getElementById('autoRefreshSec');
-
+  // 1-Minute (60-second) Silent Auto-refresh timer (no seconds counter)
   setInterval(() => {
-    countdown--;
-    if (refreshBadge) refreshBadge.innerText = countdown + 's';
-
-    if (countdown <= 0) {
-      countdown = 60; // Reset timer
-      refreshPageData(); // In-place asynchronous data update without full page reload!
-    }
-  }, 1000);
+    refreshPageData();
+  }, 60000);
 
   // In-place silent data refresh for tables
   async function refreshPageData() {
@@ -76,13 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a href="/block/${b.height}" class="height-link">#${b.height}</a>
                   </td>
                   <td class="mono">
-                    <a href="/block/${b.hash}" class="address-link" title="${b.hash}">
-                      ${b.hash}
-                    </a>
+                    <a href="/block/${b.hash}" class="address-link" title="${b.hash}">${b.hash}</a>
                   </td>
-                  <td><span class="badge badge-cyan">${b.txCount} txs</span></td>
+                  <td><span class="badge badge-cyan" style="padding: 0.15rem 0.5rem; font-size: 0.7rem; line-height: 1;">${b.txCount} txs</span></td>
                   <td class="mono" style="color: var(--text-muted);">${b.formattedSize}</td>
-                  <td style="color: var(--text-muted);">${b.formattedAge || (b.age + 's ago')}</td>
+                  <td style="color: var(--text-muted); text-align: right;">${b.formattedAge || (b.age ? b.age + 's ago' : 'Just now')}</td>
                 </tr>
               `).join('');
             }
@@ -90,18 +79,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (txPage === 1 && data.txs && data.txs.length > 0) {
             const txsBody = document.getElementById('recentTxsBody');
+            const sym = window.COIN_SYMBOL || 'GSPC';
             if (txsBody) {
               txsBody.innerHTML = data.txs.map(t => `
                 <tr>
-                  <td class="mono">
+                  <td class="mono font-bold">
                     <a href="/tx/${t.txid}" class="address-link" title="${t.txid}">
                       ${t.txid}
                     </a>
                   </td>
                   <td class="mono">
-                    <a href="/block/${t.height}">#${t.height}</a>
+                    <a href="/block/${t.height}" class="height-link">#${t.height}</a>
                   </td>
-                  <td style="color: var(--text-muted);">${t.formattedAge || (t.age + 's ago')}</td>
+                  <td class="mono" style="font-weight: 600; color: #4ade80;">
+                    ${t.value || '0.0000'} ${sym}
+                  </td>
+                  <td style="color: var(--text-muted); text-align: right;">${t.formattedAge || (t.age ? t.age + 's ago' : 'Just now')}</td>
                 </tr>
               `).join('');
             }

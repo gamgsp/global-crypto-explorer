@@ -68,6 +68,7 @@
       color: var(--primary) !important;
     }
   </style>
+  <script>window.COIN_SYMBOL = "<%= coin.symbol || 'GSPC' %>";</script>
 </head>
 <body>
   <header class="navbar-custom">
@@ -85,14 +86,9 @@
         <% } %>
       </a>
 
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <span class="badge badge-outline auto-refresh-badge" title="Auto-refreshes every 60s">
-          <i class="fa-solid fa-arrows-rotate"></i> <span id="autoRefreshSec">60s</span>
-        </span>
-        <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle menu">
+      <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle menu">
           <i class="fa-solid fa-bars"></i>
         </button>
-      </div>
 
       <form class="search-form" action="/search" method="POST">
         <input type="text" name="search" class="search-input" placeholder="Search block height, hash, txid, or <%= coin.symbol || 'wallet' %> address..." required autocomplete="off">
