@@ -11,9 +11,9 @@ Engineered with **Node.js, Express, and Better-SQLite3**, it completely removes 
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents 📑 <a id="table-of-contents"></a>
 - [Key Features](#key-features)
-- [📊 In-Depth Comparison with Other Explorers](#in-depth-comparison-with-other-explorers)
+- [In-Depth Comparison with Other Explorers](#in-depth-comparison-with-other-explorers)
   - [Comparison Matrix](#comparison-matrix)
   - [1. Global Crypto Explorer vs Iquidus Explorer](#1-global-crypto-explorer-vs-iquidus-explorer)
   - [2. Global Crypto Explorer vs BTC RPC Explorer](#2-global-crypto-explorer-vs-btc-rpc-explorer)
@@ -25,7 +25,7 @@ Engineered with **Node.js, Express, and Better-SQLite3**, it completely removes 
 - [Web Admin Control Panel Tour](#web-admin-control-panel-tour)
 - [SQLite Database Architecture & Server Migration](#sqlite-database-architecture-server-migration)
 - [Prerequisites](#prerequisites)
-- [⚡ Universal 1-Click Automated Setup Script (`setup.sh`)](#universal-1-click-automated-setup-script-setupsh)
+- [Universal 1-Click Automated Setup Script (`setup.sh`)](#universal-1-click-automated-setup-script-setupsh)
 - [Manual Quick Start Installation](#manual-quick-start-installation)
 - [First-Run Setup Wizard](#first-run-setup-wizard)
 - [Web Server & Reverse Proxy Configurations](#web-server-reverse-proxy-configurations)
@@ -36,12 +36,11 @@ Engineered with **Node.js, Express, and Better-SQLite3**, it completely removes 
   - [Option 5: Direct Node.js (No Reverse Proxy) & Security Warning](#option-5-direct-nodejs-no-reverse-proxy-security-warning)
 - [Production Daemon Service (Systemd & PM2)](#production-daemon-service-systemd-pm2)
 - [REST API Reference](#rest-api-reference)
-- [🏢 Developed By & Ecosystem Platforms](#developed-by-ecosystem-platforms)
+- [Developed By & Ecosystem Platforms](#developed-by-ecosystem-platforms)
 - [License](#license)
-
 ---
 
-## 🌟 Key Features
+## Key Features 🌟 <a id="key-features"></a>
 
 - **⚡ Direct-RPC Architecture:** Communicates natively with your coin daemon (`coind`) over JSON-RPC. Zero middle layers.
 - **🚀 Embedded SQLite Caching:** Blocks, transactions, and address ledgers are cached in `data/explorer.db` for sub-millisecond query performance.
@@ -59,13 +58,13 @@ Engineered with **Node.js, Express, and Better-SQLite3**, it completely removes 
 
 ---
 
-## 📊 In-Depth Comparison with Other Explorers
+## In-Depth Comparison with Other Explorers 📊 <a id="in-depth-comparison-with-other-explorers"></a>
 
 Selecting the right blockchain explorer infrastructure is critical for any crypto project. Many legacy or enterprise explorers require massive multi-gigabyte RAM allocations, complex multi-database clustering (MongoDB, RocksDB, PostgreSQL), or are strictly bound to Ethereum/EVM chains.
 
 **Global Crypto Explorer** was specifically designed to solve these exact problems for **Bitcoin, Dash, PIVX, and UTXO-based cryptocurrencies** by delivering enterprise-level performance on entry-level cloud VPS hardware ($3–$5/month).
 
-### Comparison Matrix
+### Comparison Matrix <a id="comparison-matrix"></a>
 
 | Feature / Metric | **Global Crypto Explorer** 🌐 | **Iquidus Explorer** | **BTC RPC Explorer** | **Blockbook (Trezor)** | **Otterscan** | **Blockscout** |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -85,32 +84,32 @@ Selecting the right blockchain explorer infrastructure is critical for any crypt
 
 ---
 
-### 1. Global Crypto Explorer vs Iquidus Explorer
+### 1. Global Crypto Explorer vs Iquidus Explorer <a id="1-global-crypto-explorer-vs-iquidus-explorer"></a>
 - **The Problem with Iquidus:** Developed in 2015, Iquidus relies on MongoDB and a detached `scripts/sync.js` process running via cron. On high-volume chains, MongoDB frequently locks up, socket connections drop, and the sync process freezes without throwing clear errors, leaving the explorer displaying stale blocks. Furthermore, modifying Iquidus branding requires editing raw Jade/Pug templates and recompiling assets.
 - **Why Global Crypto Explorer is Superior:**
   - **Zero MongoDB Overhead:** Uses high-speed embedded Better-SQLite3 with Write-Ahead Logging (WAL). There are no external database sockets to drop, no memory leaks, and zero database server configuration.
   - **Integrated Web Admin Panel:** Manage branding, coin name, ticker, logos, Google fonts, hero banners, and social links dynamically through a sleek web interface without editing server files.
   - **1-Click GitHub Updates:** Includes native GitHub API release detection and one-click upgrades with live streaming logs.
 
-### 2. Global Crypto Explorer vs BTC RPC Explorer
+### 2. Global Crypto Explorer vs BTC RPC Explorer <a id="2-global-crypto-explorer-vs-btc-rpc-explorer"></a>
 - **The Problem with BTC RPC Explorer:** BTC RPC Explorer is an excellent tool engineered specifically for pure Bitcoin enthusiasts running a personal node. However, it is fundamentally unsuitable for altcoins and forks: it lacks support for Proof-of-Stake (PoS), Masternodes, Smartnodes, and custom coin parameters. It also lacks a built-in Richlist, Whale movement tracker, and an admin panel for project branding.
 - **Why Global Crypto Explorer is Superior:**
   - **Universal Fork Support:** Seamlessly connects to any Bitcoin, Dash, PIVX, or Litecoin derivative with native support for block rewards, PoW difficulty, PoS minting, and Masternodes.
   - **Built-in Wealth Distribution:** Automatically maintains a real-time Top 100 Richlist and categorized wealth distribution tiers (Top 1–25, 26–50, 51–75, 76–100) directly from on-chain UTXO ledgers.
 
-### 3. Global Crypto Explorer vs Blockbook (Trezor)
+### 3. Global Crypto Explorer vs Blockbook (Trezor) <a id="3-global-crypto-explorer-vs-blockbook-trezor"></a>
 - **The Problem with Blockbook:** Maintained by SatoshiLabs for the Trezor hardware wallet backend, Blockbook is an industrial-scale indexer written in Go and C++ utilizing RocksDB. While powerful, it requires **16 GB to 32 GB of RAM** and complex compilation procedures. Deploying Blockbook for a community altcoin requires expensive dedicated cloud instances ($100+/month) and offers no community-facing customization.
 - **Why Global Crypto Explorer is Superior:**
   - **Fraction of the Hardware Footprint:** Runs smoothly on a **512 MB to 1 GB RAM VPS** with a 4GB swapfile.
   - **Turnkey Setup in Under 3 Minutes:** Includes a fully automated `setup.sh` that provisions Swap, Node.js 20, Nginx/Apache/Caddy, Certbot SSL, and the Coin Daemon automatically.
 
-### 4. Global Crypto Explorer vs Otterscan
+### 4. Global Crypto Explorer vs Otterscan <a id="4-global-crypto-explorer-vs-otterscan"></a>
 - **The Problem with Otterscan:** Otterscan is an ultra-fast, local explorer built exclusively for **Ethereum / EVM** archive nodes running the Erigon execution client. It cannot read UTXO transactions, Bitcoin script, or PoW/PoS consensus rules.
 - **Why Global Crypto Explorer is Superior:**
   - **Native UTXO Engine:** Specifically crafted for UTXO architecture—decoding inputs, outputs, coinbase transactions, block rewards, and address script hashes natively.
   - **No Terabyte Archive Node Required:** Operates directly with standard `coind` nodes with standard `-txindex=1`, requiring a fraction of the disk footprint of an Ethereum archive node.
 
-### 5. Global Crypto Explorer vs Blockscout
+### 5. Global Crypto Explorer vs Blockscout <a id="5-global-crypto-explorer-vs-blockscout"></a>
 - **The Problem with Blockscout:** Blockscout is an enterprise-grade EVM smart contract explorer built with Elixir, Phoenix, PostgreSQL, and Rust microservices. Running Blockscout requires an elaborate Docker Compose cluster, at least 8 GB–16 GB of RAM, and is strictly restricted to EVM chains (Ethereum, Arbitrum, Polygon, etc.).
 - **Why Global Crypto Explorer is Superior:**
   - **Zero Container Bloat:** Single Node.js service running natively with systemd.
@@ -118,7 +117,7 @@ Selecting the right blockchain explorer infrastructure is critical for any crypt
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture 🏗️ <a id="project-architecture"></a>
 
 ```
 global-crypto-explorer/
@@ -163,7 +162,7 @@ global-crypto-explorer/
 
 ---
 
-## 🧭 Complete Tour of Explorer Pages
+## Complete Tour of Explorer Pages 🧭 <a id="complete-tour-of-explorer-pages"></a>
 
 ### 1. Homepage (`/`)
 - **Key Metrics Grid:** Instant live snapshot of current Block Height, Mempool Transaction count, Circulating Supply, Real-Time Price & Market Cap, Active Masternodes/Smartnodes, PoW Mining Difficulty, Network Hashrate, and Connected P2P Peer count.
@@ -233,7 +232,7 @@ global-crypto-explorer/
 
 ---
 
-## 🎛️ Web Admin Control Panel Tour
+## Web Admin Control Panel Tour 🎛️ <a id="web-admin-control-panel-tour"></a>
 
 The Admin Control Panel allows the project owner to manage every aspect of the explorer from a responsive web dashboard without touching code or editing server files.
 
@@ -286,7 +285,7 @@ The Admin Control Panel allows the project owner to manage every aspect of the e
 
 ---
 
-## 💾 SQLite Database Architecture & Server Migration
+## SQLite Database Architecture & Server Migration 💾 <a id="sqlite-database-architecture-server-migration"></a>
 
 Global Crypto Explorer utilizes **Better-SQLite3**, an ultra-fast, serverless, single-file relational database engine operating in Write-Ahead Logging (WAL) mode.
 
@@ -327,7 +326,7 @@ Once restored, start the explorer. All your admin settings, custom styling, addr
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites 📋 <a id="prerequisites"></a>
 
 1. **Node.js:** Version `18.0.0` or higher (LTS recommended).
 2. **Coin Daemon (`coind`):** Any Bitcoin or Dash fork daemon running locally with JSON-RPC enabled.
@@ -347,7 +346,7 @@ Once restored, start the explorer. All your admin settings, custom styling, addr
 
 ---
 
-## ⚡ Universal 1-Click Automated Setup Script (`setup.sh`)
+## Universal 1-Click Automated Setup Script (`setup.sh`) ⚡ <a id="universal-1-click-automated-setup-script-setupsh"></a>
 
 Global Crypto Explorer includes a fully automated, interactive, and unattended-capable installation script (`setup.sh`) designed for fresh Linux servers (**Ubuntu 20.04/22.04/24.04, Debian 11/12, CentOS/RHEL/AlmaLinux/Rocky 8/9**).
 
@@ -476,7 +475,7 @@ Upon completion, the installer prints the live URL, first-time admin setup link,
 
 ---
 
-## 🚀 Manual Quick Start Installation
+## Manual Quick Start Installation 🚀 <a id="manual-quick-start-installation"></a>
 
 ### 1. Clone the Repository
 ```bash
@@ -513,7 +512,7 @@ The explorer will start and listen on `http://localhost:3001`.
 
 ---
 
-## 🧙‍♂️ First-Run Setup Wizard
+## First-Run Setup Wizard 🧙‍♂️ <a id="first-run-setup-wizard"></a>
 
 When you open the explorer in your browser for the first time:
 1. The app automatically detects that no administrator is configured and redirects you to `/setup`.
@@ -528,11 +527,11 @@ Your configuration is written directly to `data/explorer.db`. From that point on
 
 ---
 
-## 🌐 Web Server & Reverse Proxy Configurations
+## Web Server & Reverse Proxy Configurations 🌐 <a id="web-server-reverse-proxy-configurations"></a>
 
 While the explorer runs on port `3001`, in production you should route traffic through a standard web server for domain binding, SSL encryption (HTTPS), and request caching.
 
-### Option 1: Nginx (Recommended)
+### Option 1: Nginx (Recommended) <a id="option-1-nginx-recommended"></a>
 
 Nginx is the standard reverse proxy for Node.js applications.
 
@@ -564,7 +563,7 @@ server {
 }
 ```
 
-### Option 2: Apache2
+### Option 2: Apache2 <a id="option-2-apache2"></a>
 
 If your server runs Apache, enable the proxy modules:
 ```bash
@@ -593,7 +592,7 @@ Then configure your VirtualHost (`/etc/apache2/sites-available/explorer.conf`):
 </VirtualHost>
 ```
 
-### Option 3: Caddy (Automatic SSL)
+### Option 3: Caddy (Automatic SSL) <a id="option-3-caddy-automatic-ssl"></a>
 
 Caddy automatically provisions and renews Let's Encrypt SSL certificates with zero manual intervention.
 
@@ -608,7 +607,7 @@ Run Caddy:
 caddy run
 ```
 
-### Option 4: Cloudflare Tunnels (Zero Open Ports)
+### Option 4: Cloudflare Tunnels (Zero Open Ports) <a id="option-4-cloudflare-tunnels-zero-open-ports"></a>
 
 Cloudflare Tunnels (`cloudflared`) allow you to expose your explorer to the public internet with full SSL without opening any ports on your firewall or exposing your server's IP address:
 
@@ -637,7 +636,7 @@ Cloudflare Tunnels (`cloudflared`) allow you to expose your explorer to the publ
 
 ---
 
-### Option 5: Direct Node.js (No Reverse Proxy) & Security Warning
+### Option 5: Direct Node.js (No Reverse Proxy) & Security Warning <a id="option-5-direct-nodejs-no-reverse-proxy-security-warning"></a>
 
 Node.js is capable of listening directly on port `80` (HTTP) or running with native HTTPS by setting `PORT=80` in `.env`:
 ```ini
@@ -656,7 +655,7 @@ HOST=0.0.0.0
 
 ---
 
-## ⚙️ Production Daemon Service (Systemd & PM2)
+## Production Daemon Service (Systemd & PM2) ⚙️ <a id="production-daemon-service-systemd-pm2"></a>
 
 ### Running as a Linux Systemd Service
 
@@ -700,7 +699,7 @@ pm2 startup
 
 ---
 
-## 📡 REST API Reference
+## REST API Reference 📡 <a id="rest-api-reference"></a>
 
 All endpoints return JSON or text and are accessible from `/ext/...` and `/api/...`:
 
@@ -727,7 +726,7 @@ Visit `/info` in your browser for the full interactive API documentation.
 
 ---
 
-## 🏢 Developed By & Ecosystem Platforms
+## Developed By & Ecosystem Platforms 🏢 <a id="developed-by-ecosystem-platforms"></a>
 
 **Global Crypto Explorer** is proudly developed and maintained by **[Global Ads Media, LLC](https://globaladsmedia.us)** in collaboration with the **[GSP Coin Team](https://gspcoin.us)**.
 
@@ -769,6 +768,6 @@ Explore our ecosystem of platforms and digital services:
 
 ---
 
-## 📄 License
+## License 📄 <a id="license"></a>
 
 This project is open-source and licensed under the **MIT License**. You are free to use, customize, and deploy it for any cryptocurrency project.
