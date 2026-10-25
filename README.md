@@ -273,11 +273,27 @@ The Admin Control Panel allows the project owner to manage every aspect of the e
 - Automatic dynamic current year tag (`{year}` auto-resolves to the present year).
 - Add unlimited custom clickable footer links with customizable anchor text and URLs.
 
-### 8. Feature Toggles
+
+### 8. Analytics & Site-Wide Tracking Tags (Matomo, Google Tag & Custom Code) 📊
+- **Google Tag / Google Analytics (GA4) & Google Tag Manager (GTM):**
+  - Instant one-click toggle with smart identifier detection (GA4 `G-`, GTM `GTM-`, or Google Ads `AW-`).
+  - Automatically generates asynchronous `gtag.js` or `gtm.js` scripts and fallback `<noscript><iframe ...>` containers with zero code editing.
+- **Matomo Analytics (Self-Hosted & Cloud):**
+  - Privacy-friendly, cookie-free or GDPR-compliant visitor tracking.
+  - Simply enter your Matomo server URL and numerical Site ID.
+  - Automatically generates the official Matomo JavaScript tracker and `<noscript>` tracking pixel across all pages.
+- **Custom Site-Wide `<head>` Code / Tags:**
+  - Multi-line code editor allowing you to inject ANY tracking script, verification meta tag, or custom code (e.g. Plausible, Fathom, Cloudflare Web Analytics, Meta/Facebook Pixel) directly inside the `<head>` of every page.
+- **Custom Site-Wide `<body>` Code / Footer Scripts:**
+  - Inject custom live chat widgets (Crisp, Tawk.to, Intercom), conversion tracking pixels, or noscript fallbacks right before `</body>` across all explorer pages.
+- **Admin Isolation Preference:**
+  - Option to include or exclude admin control panel sessions from tracking to keep your analytics clean and accurate.
+
+### 9. Feature Toggles
 - **Masternodes Toggle:** Enable or disable the Masternodes tab (and rename the label to "Smartnodes", "Masternodes", or any custom name).
 - **Default Chart Timeframe:** Set the initial chart view to 7D, 15D, or 30D.
 
-### 9. System Updates & 1-Click GitHub Sync
+### 10. System Updates & 1-Click GitHub Sync
 - **Live GitHub Update Detection:** The explorer checks the official GitHub repository (`gamgsp/global-crypto-explorer`) asynchronously in the background with intelligent 5-minute caching.
 - **Visual Notification Badges:** When a new commit or release is published on GitHub, a prominent `UPDATE` badge appears in the admin sidebar navigation and a global announcement banner appears across all settings tabs displaying the commit SHA, commit message, author, and timestamp.
 - **Dedicated System & Updates Tab (`/:slug?tab=updates`):** Inspect your installed commit SHA against the remote commit SHA, commit author, and build date.

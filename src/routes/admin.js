@@ -393,6 +393,35 @@ router.post('/update-footer', requireAuth, (req, res) => {
   res.redirect(`/${conf.adminSlug}?tab=footer&msg=` + encodeURIComponent('Footer settings updated successfully!'));
 });
 
+// Update Analytics & Tracking Tags
+router.post('/update-analytics', requireAuth, (req, res) => {
+  const conf = config.getConfig();
+  const {
+    google_tag_enabled,
+    google_tag_id,
+    matomo_enabled,
+    matomo_url,
+    matomo_site_id,
+    custom_head_tags,
+    custom_body_tags,
+    track_admin_pages,
+  } = req.body;
+
+  db.updateSettings({
+    google_tag_enabled: google_tag_enabled === '1' ? '1' : '0',
+    google_tag_id: (google_tag_id || '').trim(),
+    matomo_enabled: matomo_enabled === '1' ? '1' : '0',
+    matomo_url: (matomo_url || '').trim(),
+    matomo_site_id: (matomo_site_id || '').trim(),
+    custom_head_tags: custom_head_tags || '',
+    custom_body_tags: custom_body_tags || '',
+    track_admin_pages: track_admin_pages === '1' ? '1' : '0',
+  });
+
+  res.redirect(`/${conf.adminSlug}?tab=analytics&msg=` + encodeURIComponent('Analytics & tracking tags updated successfully!'));
+});
+
+
 // Update Admin Profile & Password & Slug
 router.post('/update-profile', requireAuth, (req, res) => {
   const conf = config.getConfig();

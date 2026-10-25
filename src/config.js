@@ -72,6 +72,16 @@ function getConfig() {
     exchanges: (() => {
       try { return JSON.parse(all.exchanges_json || '[]'); } catch { return []; }
     })(),
+    analytics: {
+      googleTagEnabled: all.google_tag_enabled !== undefined ? all.google_tag_enabled === '1' : !!all.google_tag_id,
+      googleTagId: (all.google_tag_id || '').trim(),
+      matomoEnabled: all.matomo_enabled !== undefined ? all.matomo_enabled === '1' : !!(all.matomo_url && all.matomo_site_id),
+      matomoUrl: (all.matomo_url || '').trim(),
+      matomoSiteId: (all.matomo_site_id || '').trim(),
+      customHeadTags: all.custom_head_tags || '',
+      customBodyTags: all.custom_body_tags || '',
+      trackAdminPages: all.track_admin_pages === '1',
+    },
     defaults: {
       confirmations: 10,
       txsPerPage: 25,
@@ -88,5 +98,6 @@ module.exports = {
   get domain() { return getConfig().domain; },
   get rpc() { return getConfig().rpc; },
   get coin() { return getConfig().coin; },
+  get analytics() { return getConfig().analytics; },
   get defaults() { return getConfig().defaults; },
 };

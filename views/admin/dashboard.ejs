@@ -255,6 +255,23 @@
       }
     }
   </style>
+  <% if (settings && settings.analytics && settings.analytics.trackAdminPages) { %>
+    <% if (settings.analytics.googleTagEnabled && settings.analytics.googleTagId) { %>
+      <% const gTagId = settings.analytics.googleTagId.trim(); %>
+      <% if (gTagId.toUpperCase().startsWith('GTM-')) { %>
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<%= gTagId %>');</script>
+      <% } else { %>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=<%= gTagId %>"></script>
+        <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','<%= gTagId %>');</script>
+      <% } %>
+    <% } %>
+    <% if (settings.analytics.matomoEnabled && settings.analytics.matomoUrl && settings.analytics.matomoSiteId) { %>
+      <% let u = settings.analytics.matomoUrl.trim(); if (!u.endsWith('/')) u += '/'; %>
+      <script>var _paq=window._paq=window._paq||[];_paq.push(['trackPageView']);_paq.push(['enableLinkTracking']);(function(){var d=document,g=d.createElement('script'),s=d.getElementsByTagName('script')[0];g.async=true;g.src='<%= u %>matomo.js';s.parentNode.insertBefore(g,s);})();</script>
+    <% } %>
+    <% if (settings.analytics.customHeadTags) { %><%- settings.analytics.customHeadTags %><% } %>
+  <% } %>
+
 </head>
 <body>
   <div class="admin-layout">
@@ -303,6 +320,9 @@
         <a href="/<%= adminSlug %>?tab=footer" class="sidebar-item <%= tab === 'footer' ? 'active' : '' %>">
           <i class="fa-solid fa-bars-staggered"></i> <span>Footer Content</span>
         </a>
+        <a href="/<%= adminSlug %>?tab=analytics" class="sidebar-item <%= tab === 'analytics' ? 'active' : '' %>">
+          <i class="fa-solid fa-chart-line"></i> <span>Analytics & Tags</span>
+        </a>
         <a href="/<%= adminSlug %>?tab=profile" class="sidebar-item <%= tab === 'profile' ? 'active' : '' %>">
           <i class="fa-solid fa-user-gear"></i> <span>Admin Profile</span>
         </a>
@@ -338,6 +358,7 @@
             <% if (tab === 'socials') { %>Social Profiles & Price Trackers<% } %>
             <% if (tab === 'exchanges') { %>Listed Exchanges & Trading Pairs<% } %>
             <% if (tab === 'footer') { %>Footer Content & Clickable Links<% } %>
+                        <% if (tab === 'analytics') { %>Analytics & Tracking Tags<% } %>
             <% if (tab === 'profile') { %>Administrator Profile & Security<% } %>
             <% if (tab === 'updates') { %>System Updates & GitHub Sync<% } %>
           </h1>
@@ -799,6 +820,148 @@
             container.appendChild(div);
           }
         </script>
+      <% } %>
+
+      
+      <!-- TAB: ANALYTICS & TRACKING TAGS -->
+      <% if (tab === 'analytics') { %>
+        <div class="admin-card">
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-chart-line" style="color: #10b981;"></i> Analytics &amp; Site-Wide Tracking Tags
+          </h2>
+          <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.75rem;">
+            Add Google Analytics (GA4), Google Tag Manager (GTM), Matomo, or inject ANY custom tracking tag, header script, meta tag, or footer code across every page of your block explorer.
+          </p>
+
+          <form action="/<%= adminSlug %>/update-analytics" method="POST">
+            
+            <!-- SECTION 1: GOOGLE ANALYTICS & GOOGLE TAG MANAGER -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.75rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                  <div style="width: 36px; height: 36px; border-radius: 9px; background: rgba(234, 67, 53, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(234, 67, 53, 0.3);">
+                    <i class="fa-brands fa-google" style="color: #ea4335; font-size: 1.1rem;"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">Google Tag / Analytics (GA4 &amp; GTM)</h3>
+                    <span style="font-size: 0.78rem; color: #94a3b8;">Supports Google Analytics 4 (G-), Tag Manager (GTM-), or Google Ads (AW-)</span>
+                  </div>
+                </div>
+                <div style="min-width: 170px;">
+                  <select name="google_tag_enabled" class="form-control" style="padding: 0.5rem 0.85rem; font-size: 0.85rem;">
+                    <option value="1" <%= (settings.analytics && settings.analytics.googleTagEnabled) ? 'selected' : '' %>>🟢 Enabled</option>
+                    <option value="0" <%= (!settings.analytics || !settings.analytics.googleTagEnabled) ? 'selected' : '' %>>⚪ Disabled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.5rem;">
+                <label>Google Tag ID / Measurement ID / GTM Container ID</label>
+                <input type="text" name="google_tag_id" class="form-control" value="<%= (settings.analytics && settings.analytics.googleTagId) || '' %>" placeholder="e.g. G-XXXXXXXXXX or GTM-XXXXXXX">
+                <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.4rem;">
+                  Simply paste your Measurement ID (starts with <code>G-</code>) or GTM ID (starts with <code>GTM-</code>). The official async gtag.js/gtm.js script and fallback noscript iframe are automatically generated.
+                </small>
+              </div>
+            </div>
+
+            <!-- SECTION 2: MATOMO ANALYTICS -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.75rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                  <div style="width: 36px; height: 36px; border-radius: 9px; background: rgba(59, 130, 246, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <i class="fa-solid fa-chart-pie" style="color: #3b82f6; font-size: 1.1rem;"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">Matomo Analytics (Self-Hosted &amp; Cloud)</h3>
+                    <span style="font-size: 0.78rem; color: #94a3b8;">Privacy-friendly, GDPR-compliant on-chain visitor intelligence</span>
+                  </div>
+                </div>
+                <div style="min-width: 170px;">
+                  <select name="matomo_enabled" class="form-control" style="padding: 0.5rem 0.85rem; font-size: 0.85rem;">
+                    <option value="1" <%= (settings.analytics && settings.analytics.matomoEnabled) ? 'selected' : '' %>>🟢 Enabled</option>
+                    <option value="0" <%= (!settings.analytics || !settings.analytics.matomoEnabled) ? 'selected' : '' %>>⚪ Disabled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom: 0.5rem;">
+                  <label>Matomo Server URL</label>
+                  <input type="text" name="matomo_url" class="form-control" value="<%= (settings.analytics && settings.analytics.matomoUrl) || '' %>" placeholder="https://matomo.yourdomain.com/">
+                  <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.4rem;">
+                    Your self-hosted Matomo installation URL or Matomo Cloud URL.
+                  </small>
+                </div>
+                <div class="form-group" style="margin-bottom: 0.5rem;">
+                  <label>Matomo Site ID</label>
+                  <input type="text" name="matomo_site_id" class="form-control" value="<%= (settings.analytics && settings.analytics.matomoSiteId) || '' %>" placeholder="e.g. 1">
+                  <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.4rem;">
+                    The numerical ID assigned to this site in your Matomo dashboard.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: ANY CUSTOM HEAD TAGS / SCRIPTS -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1rem;">
+                <div style="width: 36px; height: 36px; border-radius: 9px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(16, 185, 129, 0.3);">
+                  <i class="fa-solid fa-code" style="color: #10b981; font-size: 1.05rem;"></i>
+                </div>
+                <div>
+                  <h3 style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">Custom &lt;head&gt; Code &amp; Tags (Applicable to All Pages)</h3>
+                  <span style="font-size: 0.78rem; color: #94a3b8;">Inject any tracking script, verification meta tag, or analytics header snippet</span>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>HTML / JavaScript Code (Injected directly inside &lt;head&gt; across all pages)</label>
+                <textarea name="custom_head_tags" rows="6" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.5; background: #080d1a; color: #38bdf8;" placeholder="&lt;!-- Paste any tracking tag, Plausible, Cloudflare Web Analytics, Fathom, Meta Pixel, or custom scripts --&gt;&#10;&lt;script async src=&quot;...&quot;&gt;&lt;/script&gt;"><%= (settings.analytics && settings.analytics.customHeadTags) || '' %></textarea>
+                <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.4rem;">
+                  Paste full code blocks including <code>&lt;script&gt;</code> or <code>&lt;meta&gt;</code> tags. Executed in the <code>&lt;head&gt;</code> of every page.
+                </small>
+              </div>
+            </div>
+
+            <!-- SECTION 4: ANY CUSTOM BODY TAGS / SCRIPTS -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1rem;">
+                <div style="width: 36px; height: 36px; border-radius: 9px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(245, 158, 11, 0.3);">
+                  <i class="fa-solid fa-file-code" style="color: #f59e0b; font-size: 1.05rem;"></i>
+                </div>
+                <div>
+                  <h3 style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">Custom &lt;body&gt; Code &amp; Footer Scripts (Applicable to All Pages)</h3>
+                  <span style="font-size: 0.78rem; color: #94a3b8;">Inject body scripts, live chat widgets, conversion pixels, or &lt;noscript&gt; fallbacks</span>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>HTML / JavaScript Code (Injected directly before &lt;/body&gt; across all pages)</label>
+                <textarea name="custom_body_tags" rows="6" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.5; background: #080d1a; color: #facc15;" placeholder="&lt;!-- Paste any footer scripts, chat widgets (Crisp, Tawk.to, Intercom), or noscript tags --&gt;&#10;&lt;noscript&gt;...&lt;/noscript&gt;"><%= (settings.analytics && settings.analytics.customBodyTags) || '' %></textarea>
+                <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.4rem;">
+                  Paste full code blocks including <code>&lt;script&gt;</code> or <code>&lt;noscript&gt;</code> tags. Executed right before <code>&lt;/body&gt;</code> on every page.
+                </small>
+              </div>
+            </div>
+
+            <!-- SECTION 5: TRACKING PREFERENCES -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.75rem;">
+              <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin: 0;">
+                <div>
+                  <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Apply tracking tags to Admin Panel pages?</div>
+                  <div style="color: #64748b; font-size: 0.8rem; margin-top: 0.2rem;">
+                    Default is disabled (recommended) to prevent administrative visits from skewing public visitor analytics.
+                  </div>
+                </div>
+                <input type="checkbox" name="track_admin_pages" value="1" <%= (settings.analytics && settings.analytics.trackAdminPages) ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #10b981; cursor: pointer;">
+              </label>
+            </div>
+
+            <div>
+              <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Save Analytics &amp; Tracking Tags</button>
+            </div>
+          </form>
+        </div>
       <% } %>
 
       <!-- TAB 8: ADMIN PROFILE & SECURITY -->

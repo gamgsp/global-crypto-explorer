@@ -73,5 +73,31 @@
   </footer>
 
   <script src="/js/app.js"></script>
+
+  <!-- ============================================== -->
+  <!-- Analytics & Site-wide Body / Footer Tags      -->
+  <!-- ============================================== -->
+  <% if (settings && settings.analytics) { %>
+    <!-- Google Tag Manager (noscript fallback) -->
+    <% if (settings.analytics.googleTagEnabled && settings.analytics.googleTagId && settings.analytics.googleTagId.trim().toUpperCase().startsWith('GTM-')) { %>
+      <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%= settings.analytics.googleTagId.trim() %>"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <% } %>
+
+    <!-- Matomo (noscript beacon fallback) -->
+    <% if (settings.analytics.matomoEnabled && settings.analytics.matomoUrl && settings.analytics.matomoSiteId) { %>
+      <% 
+        let cleanMatomoUrl = settings.analytics.matomoUrl.trim();
+        if (!cleanMatomoUrl.endsWith('/')) cleanMatomoUrl += '/';
+      %>
+      <noscript><p><img referrerpolicy="no-referrer-when-downgrade" src="<%= cleanMatomoUrl %>matomo.php?idsite=<%= settings.analytics.matomoSiteId.trim() %>&amp;rec=1" style="border:0;" alt="" /></p></noscript>
+    <% } %>
+
+    <!-- Custom Site-wide <body> Code / Tags (Any tag) -->
+    <% if (settings.analytics.customBodyTags && settings.analytics.customBodyTags.trim()) { %>
+      <%- settings.analytics.customBodyTags %>
+    <% } %>
+  <% } %>
+
 </body>
 </html>

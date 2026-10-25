@@ -82,6 +82,23 @@
       font-size: 0.85rem;
     }
   </style>
+  <% if (settings && settings.analytics && settings.analytics.trackAdminPages) { %>
+    <% if (settings.analytics.googleTagEnabled && settings.analytics.googleTagId) { %>
+      <% const gTagId = settings.analytics.googleTagId.trim(); %>
+      <% if (gTagId.toUpperCase().startsWith('GTM-')) { %>
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<%= gTagId %>');</script>
+      <% } else { %>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=<%= gTagId %>"></script>
+        <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','<%= gTagId %>');</script>
+      <% } %>
+    <% } %>
+    <% if (settings.analytics.matomoEnabled && settings.analytics.matomoUrl && settings.analytics.matomoSiteId) { %>
+      <% let u = settings.analytics.matomoUrl.trim(); if (!u.endsWith('/')) u += '/'; %>
+      <script>var _paq=window._paq=window._paq||[];_paq.push(['trackPageView']);_paq.push(['enableLinkTracking']);(function(){var d=document,g=d.createElement('script'),s=d.getElementsByTagName('script')[0];g.async=true;g.src='<%= u %>matomo.js';s.parentNode.insertBefore(g,s);})();</script>
+    <% } %>
+    <% if (settings.analytics.customHeadTags) { %><%- settings.analytics.customHeadTags %><% } %>
+  <% } %>
+
 </head>
 <body>
   <div class="login-box">
