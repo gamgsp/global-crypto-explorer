@@ -1,5 +1,141 @@
 <%- include('partials/header') %>
 
+<style>
+  /* Copy Nodes Button Animation & Feedback */
+  .btn-copy-node {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+  .btn-copy-node:active {
+    transform: scale(0.92) !important;
+  }
+  .btn-copy-node.copied-anim {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.75), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.04);
+  }
+  
+  @keyframes popCheck {
+    0% { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+    50% { transform: scale(1.35) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .icon-pop {
+    display: inline-block;
+    animation: popCheck 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  /* Single row copy button feedback */
+  .single-copy-btn {
+    transition: all 0.2s ease;
+  }
+  .single-copy-btn.copied {
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+    transform: scale(1.15);
+  }
+
+  /* Floating Screen-Top Toast Notification */
+  .floating-toast-container {
+    position: fixed;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999999;
+    pointer-events: none;
+    width: auto;
+    max-width: 92vw;
+  }
+  .floating-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(11, 15, 25, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid #10b981;
+    border-radius: 14px;
+    padding: 1rem 1.4rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(16, 185, 129, 0.4);
+    color: #fff;
+    min-width: 360px;
+    max-width: 550px;
+    position: relative;
+    overflow: hidden;
+    animation: toastDrop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .floating-toast.toast-hiding {
+    animation: toastFadeOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+  @keyframes toastDrop {
+    0% {
+      opacity: 0;
+      transform: translateY(-40px) scale(0.92);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes toastFadeOut {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-25px) scale(0.94);
+    }
+  }
+
+  .toast-progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10b981, #38bdf8);
+    width: 100%;
+    transform-origin: left;
+    animation: toastProgress 4.5s linear forwards;
+  }
+  @keyframes toastProgress {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
+  }
+</style>
+
+<!-- Floating Toast Container -->
+<div class="floating-toast-container" id="toastContainer" style="display: none;">
+  <div class="floating-toast" id="floatingToast">
+    <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(16, 185, 129, 0.5); flex-shrink: 0; box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);">
+      <i class="fa-solid fa-check icon-pop" style="color: #10b981; font-size: 1.35rem;"></i>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-weight: 700; font-size: 0.98rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+        <span id="toastTitle">Nodes Copied to Clipboard!</span>
+        <span class="badge badge-success" style="font-size: 0.65rem; padding: 2px 7px; font-weight: 700; border-radius: 9999px;">CONF READY</span>
+      </div>
+      <div style="color: #94a3b8; font-size: 0.82rem; margin-top: 0.25rem; line-height: 1.4;" id="toastBody">
+        Active peer nodes copied in <code style="color: #38bdf8; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 4px;">addnode=ip</code> format.
+      </div>
+    </div>
+    <button type="button" onclick="hideToast()" style="background: none; border: none; color: #64748b; font-size: 1.2rem; cursor: pointer; padding: 4px; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#64748b'">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="toast-progress-bar" id="toastProgressBar"></div>
+  </div>
+</div>
+
 <div class="glass-card">
   <div class="glass-card-header" style="flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
     <div class="card-title">
@@ -7,23 +143,14 @@
     </div>
     
     <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
-      <button class="btn btn-sm btn-primary" id="btnCopyNodes" onclick="copyAllNodes()">
-        <i class="fa-solid fa-copy"></i> Copy Nodes (<code style="background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; color: #fff; font-size: 0.78rem;">addnode=ip</code>)
+      <button class="btn btn-sm btn-primary btn-copy-node" id="btnCopyNodes" onclick="copyAllNodes()" title="Copy all active connected peers in addnode=ip format">
+        <i class="fa-solid fa-copy"></i> <span>Copy Nodes (<code style="background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; color: #fff; font-size: 0.78rem;">addnode=ip</code>)</span>
       </button>
       <button class="btn btn-sm btn-outline" onclick="openNodeModal()">
         <i class="fa-solid fa-file-code"></i> View .conf Guide
       </button>
       <span class="badge badge-success"><span class="pulse-dot"></span> P2P Active</span>
     </div>
-  </div>
-
-  <!-- Dynamic Copy Notification Toast -->
-  <div id="copyToast" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #6ee7b7; padding: 0.85rem 1.25rem; border-radius: 10px; margin-bottom: 1.25rem; font-size: 0.88rem; align-items: center; justify-content: space-between; transition: all 0.3s ease;">
-    <div style="display: flex; align-items: center; gap: 0.65rem;">
-      <i class="fa-solid fa-circle-check" style="font-size: 1.15rem; color: #10b981;"></i>
-      <span id="copyToastMsg">Copied active nodes to clipboard!</span>
-    </div>
-    <button type="button" onclick="hideToast()" style="background: none; border: none; color: #6ee7b7; cursor: pointer; font-size: 1.1rem; padding: 0 4px;"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
   <div class="table-responsive">
@@ -47,7 +174,7 @@
               <td class="mono" style="font-weight: 600; color: #fff;">
                 <div style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: space-between; min-width: 190px;">
                   <span><%= p.addr %></span>
-                  <button type="button" class="btn btn-sm btn-outline" style="padding: 2px 7px; font-size: 0.72rem; line-height: 1.2;" title="Copy addnode=<%= p.ip %>" onclick="copySingleNode('<%= p.ip %>')">
+                  <button type="button" class="btn btn-sm btn-outline single-copy-btn" id="btnSingle_<%= (p.ip || '').replace(/[^a-zA-Z0-9]/g, '_') %>" style="padding: 2px 7px; font-size: 0.72rem; line-height: 1.2;" title="Copy addnode=<%= p.ip %>" onclick="copySingleNode('<%= p.ip %>', this)">
                     <i class="fa-regular fa-copy"></i>
                   </button>
                 </div>
@@ -100,8 +227,8 @@
 
     <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
       <button type="button" class="btn btn-outline" onclick="closeNodeModal()">Close</button>
-      <button type="button" class="btn btn-primary" id="btnModalCopy" onclick="copyModalContent()">
-        <i class="fa-solid fa-copy"></i> Copy to Clipboard
+      <button type="button" class="btn btn-primary btn-copy-node" id="btnModalCopy" onclick="copyModalContent()">
+        <i class="fa-solid fa-copy"></i> <span>Copy to Clipboard</span>
       </button>
     </div>
   </div>
@@ -109,8 +236,10 @@
 
 <script>
   const PEER_IPS = <%- JSON.stringify(Array.from(new Set(peers.map(p => p.ip).filter(ip => ip && ip !== '127.0.0.1' && ip !== 'localhost' && ip !== '::1')))) %>;
+  const COIN_CONF = "<%= coin.symbol.toLowerCase() %>coin.conf";
 
   let toastTimer = null;
+  let btnResetTimer = null;
 
   function getNodeList() {
     if (!PEER_IPS || PEER_IPS.length === 0) return '';
@@ -119,7 +248,9 @@
 
   function copyToClipboard(text, onSuccess) {
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text, onSuccess));
+      navigator.clipboard.writeText(text)
+        .then(() => { if (onSuccess) onSuccess(); })
+        .catch(() => fallbackCopy(text, onSuccess));
     } else {
       fallbackCopy(text, onSuccess);
     }
@@ -131,6 +262,7 @@
     ta.style.position = 'fixed';
     ta.style.left = '-9999px';
     ta.style.top = '-9999px';
+    ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.focus();
     ta.select();
@@ -138,51 +270,102 @@
       document.execCommand('copy');
       if (onSuccess) onSuccess();
     } catch (e) {
-      console.error('Fallback copy failed', e);
+      console.error('Fallback copy error:', e);
     }
     document.body.removeChild(ta);
   }
 
-  function showToast(msg) {
-    const toast = document.getElementById('copyToast');
-    const toastMsg = document.getElementById('copyToastMsg');
-    if (!toast) return;
-    toastMsg.textContent = msg;
-    toast.style.display = 'flex';
+  function showToast(title, body) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.getElementById('floatingToast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastBody = document.getElementById('toastBody');
+    const progressBar = document.getElementById('toastProgressBar');
+
+    if (!container || !toast) return;
+
+    toastTitle.textContent = title || 'Copied to Clipboard!';
+    if (body) toastBody.innerHTML = body;
+
+    // Reset animations
+    toast.classList.remove('toast-hiding');
+    container.style.display = 'block';
+
+    // Restart progress bar animation
+    if (progressBar) {
+      progressBar.style.animation = 'none';
+      void progressBar.offsetWidth; // trigger reflow
+      progressBar.style.animation = 'toastProgress 4.5s linear forwards';
+    }
+
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
-      toast.style.display = 'none';
+      hideToast();
     }, 4500);
   }
 
   function hideToast() {
-    const toast = document.getElementById('copyToast');
-    if (toast) toast.style.display = 'none';
+    const container = document.getElementById('toastContainer');
+    const toast = document.getElementById('floatingToast');
+    if (!container || !toast) return;
+
+    toast.classList.add('toast-hiding');
     if (toastTimer) clearTimeout(toastTimer);
+    setTimeout(() => {
+      container.style.display = 'none';
+      toast.classList.remove('toast-hiding');
+    }, 300);
   }
 
   function copyAllNodes() {
     const text = getNodeList();
+    const btn = document.getElementById('btnCopyNodes');
+    
     if (!text) {
-      showToast('No active peer nodes found to copy.');
+      showToast('No Active Nodes', 'No connected peer nodes are currently available to copy.');
       return;
     }
-    const btn = document.getElementById('btnCopyNodes');
-    const origHtml = btn ? btn.innerHTML : '';
 
+    // 1. Trigger Instant Click Animation & Visual State on Button
+    if (btn) {
+      const origHtml = '<i class="fa-solid fa-copy"></i> <span>Copy Nodes (<code style="background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; color: #fff; font-size: 0.78rem;">addnode=ip</code>)</span>';
+      btn.classList.add('copied-anim');
+      btn.innerHTML = '<i class="fa-solid fa-check icon-pop"></i> <span>Copied to Clipboard!</span>';
+
+      if (btnResetTimer) clearTimeout(btnResetTimer);
+      btnResetTimer = setTimeout(() => {
+        btn.classList.remove('copied-anim');
+        btn.innerHTML = origHtml;
+      }, 2500);
+    }
+
+    // 2. Perform Clipboard Copy & Show Floating Screen Toast
     copyToClipboard(text, () => {
-      showToast('Copied ' + PEER_IPS.length + ' active nodes to clipboard! Paste directly into your <%= coin.symbol.toLowerCase() %>coin.conf file.');
-      if (btn) {
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-        setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
-      }
+      showToast(
+        'Nodes Copied to Clipboard!',
+        '<strong>' + PEER_IPS.length + ' active nodes</strong> copied in <code>addnode=ip</code> format. Ready to paste into <strong style="color:#38bdf8;">' + COIN_CONF + '</strong>.'
+      );
     });
   }
 
-  function copySingleNode(ip) {
+  function copySingleNode(ip, btnElement) {
     const line = 'addnode=' + ip;
+    
+    // Animate single button
+    if (btnElement) {
+      btnElement.classList.add('copied');
+      btnElement.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
+      setTimeout(() => {
+        btnElement.classList.remove('copied');
+        btnElement.innerHTML = '<i class="fa-regular fa-copy"></i>';
+      }, 2000);
+    }
+
     copyToClipboard(line, () => {
-      showToast('Copied single node: ' + line);
+      showToast(
+        'Node Copied!',
+        'Copied <code style="color:#38bdf8;">' + line + '</code> to clipboard.'
+      );
     });
   }
 
@@ -203,13 +386,21 @@
     const btn = document.getElementById('btnModalCopy');
     if (!textarea || !textarea.value) return;
 
+    if (btn) {
+      const origHtml = '<i class="fa-solid fa-copy"></i> <span>Copy to Clipboard</span>';
+      btn.classList.add('copied-anim');
+      btn.innerHTML = '<i class="fa-solid fa-check icon-pop"></i> <span>Copied!</span>';
+      setTimeout(() => {
+        btn.classList.remove('copied-anim');
+        btn.innerHTML = origHtml;
+      }, 2500);
+    }
+
     copyToClipboard(textarea.value, () => {
-      showToast('Copied ' + PEER_IPS.length + ' active nodes to clipboard!');
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-        setTimeout(() => { btn.innerHTML = orig; }, 2000);
-      }
+      showToast(
+        'Nodes Copied!',
+        'All <strong>' + PEER_IPS.length + ' active nodes</strong> copied to clipboard.'
+      );
     });
   }
 
