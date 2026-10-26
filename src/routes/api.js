@@ -201,7 +201,6 @@ router.get('/latest-blocks-txs', async (req, res) => {
 router.get('/nodes', async (req, res) => {
   try {
     const peers = await rpc.getPeerInfo();
-    const defaultP2pPort = config.p2pPort || '27653';
     const ips = [];
     const seen = new Set();
 
@@ -219,8 +218,7 @@ router.get('/nodes', async (req, res) => {
       }
     }
 
-    const withPort = req.query.port === '1' || req.query.format === 'port';
-    const addnodeLines = ips.map(ip => withPort ? `addnode=${ip}:${defaultP2pPort}` : `addnode=${ip}`);
+    const addnodeLines = ips.map(ip => `addnode=${ip}`);
 
     if (req.query.format === 'text' || req.query.format === 'conf') {
       res.setHeader('Content-Type', 'text/plain');
@@ -229,7 +227,6 @@ router.get('/nodes', async (req, res) => {
 
     res.json({
       coin: config.coin.symbol,
-      p2pPort: defaultP2pPort,
       count: ips.length,
       addnodes: addnodeLines,
       ips: ips,

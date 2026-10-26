@@ -6,12 +6,9 @@
       <i class="fa-solid fa-network-wired" style="color: var(--cyan);"></i> Connected Network Peers (<%= count %>)
     </div>
     
-    <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-      <button class="btn btn-sm btn-primary" id="btnCopyPlain" onclick="copyAllNodes('plain')">
+    <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+      <button class="btn btn-sm btn-primary" id="btnCopyNodes" onclick="copyAllNodes()">
         <i class="fa-solid fa-copy"></i> Copy Nodes (<code style="background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; color: #fff; font-size: 0.78rem;">addnode=ip</code>)
-      </button>
-      <button class="btn btn-sm btn-outline" id="btnCopyPort" onclick="copyAllNodes('port')">
-        <i class="fa-solid fa-network-wired"></i> Copy with Port (<code style="background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; color: #38bdf8; font-size: 0.78rem;">:<%= p2pPort %></code>)
       </button>
       <button class="btn btn-sm btn-outline" onclick="openNodeModal()">
         <i class="fa-solid fa-file-code"></i> View .conf Guide
@@ -85,13 +82,8 @@
     </div>
 
     <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.5;">
-      If your wallet or daemon shows <strong>0 connections</strong> or is stuck waiting for sync, paste these <code>addnode</code> lines into your <code><%= coin.symbol.toLowerCase() %>coin.conf</code> file and restart your wallet:
+      If your wallet or daemon shows <strong>0 connections</strong> or is stuck waiting for sync, paste these <code>addnode</code> lines into your <code><%= coin.symbol.toLowerCase() %>coin.conf</code> file and restart your wallet (your daemon will automatically connect on its native P2P port):
     </p>
-
-    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-      <button type="button" class="btn btn-sm btn-primary" id="modalFormatPlain" onclick="setModalFormat('plain')">Format: addnode=ip (Standard)</button>
-      <button type="button" class="btn btn-sm btn-outline" id="modalFormatPort" onclick="setModalFormat('port')">Format: addnode=ip:<%= p2pPort %> (With Port)</button>
-    </div>
 
     <div style="position: relative;">
       <textarea id="modalNodesTextarea" readonly rows="9" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; background: #080d1a; color: #38bdf8; line-height: 1.6; resize: vertical; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; width: 100%; padding: 0.75rem;" onclick="this.select();"></textarea>
@@ -116,17 +108,13 @@
 </div>
 
 <script>
-  const P2P_PORT = "<%= p2pPort %>";
   const PEER_IPS = <%- JSON.stringify(Array.from(new Set(peers.map(p => p.ip).filter(ip => ip && ip !== '127.0.0.1' && ip !== 'localhost' && ip !== '::1')))) %>;
 
-  let currentModalFormat = 'plain';
   let toastTimer = null;
 
-  function getNodeList(format) {
+  function getNodeList() {
     if (!PEER_IPS || PEER_IPS.length === 0) return '';
-    return PEER_IPS.map(ip => {
-      return format === 'port' ? ('addnode=' + ip + ':' + P2P_PORT) : ('addnode=' + ip);
-    }).join('\n');
+    return PEER_IPS.map(ip => 'addnode=' + ip).join('\n');
   }
 
   function copyToClipboard(text, onSuccess) {
@@ -173,14 +161,13 @@
     if (toastTimer) clearTimeout(toastTimer);
   }
 
-  function copyAllNodes(format) {
-    const text = getNodeList(format);
+  function copyAllNodes() {
+    const text = getNodeList();
     if (!text) {
       showToast('No active peer nodes found to copy.');
       return;
     }
-    const btnId = format === 'port' ? 'btnCopyPort' : 'btnCopyPlain';
-    const btn = document.getElementById(btnId);
+    const btn = document.getElementById('btnCopyNodes');
     const origHtml = btn ? btn.innerHTML : '';
 
     copyToClipboard(text, () => {
@@ -201,31 +188,14 @@
 
   function openNodeModal() {
     const modal = document.getElementById('nodeModal');
-    if (modal) {
-      setModalFormat(currentModalFormat);
-      modal.style.display = 'flex';
-    }
+    const textarea = document.getElementById('modalNodesTextarea');
+    if (textarea) textarea.value = getNodeList();
+    if (modal) modal.style.display = 'flex';
   }
 
   function closeNodeModal() {
     const modal = document.getElementById('nodeModal');
     if (modal) modal.style.display = 'none';
-  }
-
-  function setModalFormat(format) {
-    currentModalFormat = format;
-    const textarea = document.getElementById('modalNodesTextarea');
-    const btnPlain = document.getElementById('modalFormatPlain');
-    const btnPort = document.getElementById('modalFormatPort');
-
-    if (textarea) textarea.value = getNodeList(format);
-    if (format === 'plain') {
-      if (btnPlain) { btnPlain.className = 'btn btn-sm btn-primary'; }
-      if (btnPort) { btnPort.className = 'btn btn-sm btn-outline'; }
-    } else {
-      if (btnPlain) { btnPlain.className = 'btn btn-sm btn-outline'; }
-      if (btnPort) { btnPort.className = 'btn btn-sm btn-primary'; }
-    }
   }
 
   function copyModalContent() {

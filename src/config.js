@@ -82,7 +82,6 @@ function getConfig() {
       customBodyTags: all.custom_body_tags || '',
       trackAdminPages: all.track_admin_pages === '1',
     },
-    p2pPort: all.p2p_port || process.env.P2P_PORT || '27653',
     defaults: {
       confirmations: 10,
       txsPerPage: 25,
@@ -100,6 +99,5 @@ module.exports = {
   get rpc() { return getConfig().rpc; },
   get coin() { return getConfig().coin; },
   get analytics() { return getConfig().analytics; },
-  get p2pPort() { return getConfig().p2pPort; },
   get defaults() { return getConfig().defaults; },
 };
