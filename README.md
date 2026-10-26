@@ -225,7 +225,14 @@ global-crypto-explorer/
 - Users sign their chosen name using their desktop/core wallet (`Sign Message` feature) and submit the address, display name, and signature.
 - The explorer verifies the ECDSA signature via `verifymessage` RPC. If valid, the verified badge and claim name are permanently attached to the address.
 
-### 11. Interactive REST API Documentation (`/info`)
+
+### 12. Network Peers & Addnode Synchronizer (`/network`)
+- Real-time peer-to-peer connection inspector displaying connected client versions, protocol numbers, ping latencies, connection duration, and inbound/outbound directions.
+- **1-Click Copy Nodes (`addnode=ip`):** Instantly copies all active connected peer IP addresses formatted as `addnode=ip` directly to the clipboard for pasting into `gspcoin.conf` when wallets or daemons require initial seed nodes.
+- **Copy with Port (`addnode=ip:27653`):** Supports copying peer connections with explicit P2P ports (`addnode=ip:27653`).
+- **Configuration Helper Modal:** Interactive guide with format switcher and copy preview explaining exact file paths for Windows (`%APPDATA%\Gspcoin\gspcoin.conf`), Linux (`~/.gspcoincore/gspcoin.conf`), and macOS.
+
+### 13. Interactive REST API Documentation (`/info`)
 - Full interactive developer portal listing all 20+ available REST API endpoints.
 - Includes integrated **Test** buttons allowing developers to test API calls in real-time and inspect JSON output directly in the browser.
 - Automatically adjusts all example endpoint URLs to reflect your live production domain.
@@ -722,6 +729,7 @@ All endpoints return JSON or text and are accessible from `/ext/...` and `/api/.
 | Endpoint | Method | Description |
 |---|---|---|
 | `/api/stats` | GET | Real-time network statistics (blocks, supply, difficulty, hashrate, peers) |
+| `/api/nodes` | GET | List of connected network peers formatted as `addnode=ip` (supports `?format=text` and `?port=1`) |
 | `/api/charts?days=30` | GET | Historical daily stats for transactions, difficulty, hashrate, and blocks |
 | `/ext/getmoneysupply` | GET | Current circulating coin supply (plain text) |
 | `/ext/getblockcount` | GET | Current highest block height |

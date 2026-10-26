@@ -409,20 +409,42 @@ router.get('/masternodes', async (req, res) => {
 router.get('/network', async (req, res) => {
   try {
     const peers = await rpc.getPeerInfo();
-    const formattedPeers = peers.map(p => ({
-      addr: p.addr,
-      subver: p.subver ? p.subver.replace(/\//g, '') : 'Gspcoin Core',
-      version: p.version,
-      ping: p.pingtime ? (p.pingtime * 1000).toFixed(0) + ' ms' : 'N/A',
-      conntime: formatTime(p.conntime),
-      inbound: p.inbound ? 'Inbound' : 'Outbound',
-    }));
+    const defaultP2pPort = config.p2pPort || '27653';
+    const formattedPeers = peers.map(p => {
+      let ip = p.addr || '';
+      let port = defaultP2pPort;
+      if (ip.startsWith('[')) {
+        const endBracket = ip.indexOf(']');
+        if (endBracket !== -1) {
+          ip = ip.slice(0, endBracket + 1);
+          const after = (p.addr || '').slice(endBracket + 1);
+          if (after.startsWith(':')) {
+            port = after.slice(1) || defaultP2pPort;
+          }
+        }
+      } else if (ip.includes(':')) {
+        const lastColon = ip.lastIndexOf(':');
+        port = ip.slice(lastColon + 1) || defaultP2pPort;
+        ip = ip.slice(0, lastColon);
+      }
+      return {
+        addr: p.addr,
+        ip: ip,
+        port: port,
+        subver: p.subver ? p.subver.replace(/\//g, '') : (config.coin.name + ' Core'),
+        version: p.version,
+        ping: p.pingtime ? (p.pingtime * 1000).toFixed(0) + ' ms' : 'N/A',
+        conntime: formatTime(p.conntime),
+        inbound: p.inbound ? 'Inbound' : 'Outbound',
+      };
+    });
 
     res.render('network', {
       active: 'network',
       coin: config.coin,
       peers: formattedPeers,
       count: formattedPeers.length,
+      p2pPort: defaultP2pPort,
     });
   } catch (err) {
     res.status(500).render('error', { error: err.message, coin: config.coin, active: 'network' });

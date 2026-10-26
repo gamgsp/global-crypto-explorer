@@ -196,4 +196,47 @@ router.get('/latest-blocks-txs', async (req, res) => {
   }
 });
 
+
+// 11. nodes / addnodes (plain text or json for easy wallet configuration)
+router.get('/nodes', async (req, res) => {
+  try {
+    const peers = await rpc.getPeerInfo();
+    const defaultP2pPort = config.p2pPort || '27653';
+    const ips = [];
+    const seen = new Set();
+
+    for (const p of peers) {
+      let ip = p.addr || '';
+      if (ip.startsWith('[')) {
+        const endBracket = ip.indexOf(']');
+        if (endBracket !== -1) ip = ip.slice(0, endBracket + 1);
+      } else if (ip.includes(':')) {
+        ip = ip.slice(0, ip.lastIndexOf(':'));
+      }
+      if (ip && !seen.has(ip) && ip !== '127.0.0.1' && ip !== 'localhost' && ip !== '::1') {
+        seen.add(ip);
+        ips.push(ip);
+      }
+    }
+
+    const withPort = req.query.port === '1' || req.query.format === 'port';
+    const addnodeLines = ips.map(ip => withPort ? `addnode=${ip}:${defaultP2pPort}` : `addnode=${ip}`);
+
+    if (req.query.format === 'text' || req.query.format === 'conf') {
+      res.setHeader('Content-Type', 'text/plain');
+      return res.send(addnodeLines.join('\n'));
+    }
+
+    res.json({
+      coin: config.coin.symbol,
+      p2pPort: defaultP2pPort,
+      count: ips.length,
+      addnodes: addnodeLines,
+      ips: ips,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch network peers' });
+  }
+});
+
 module.exports = router;

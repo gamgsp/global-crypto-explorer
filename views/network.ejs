@@ -1,18 +1,39 @@
 <%- include('partials/header') %>
 
 <div class="glass-card">
-  <div class="glass-card-header">
+  <div class="glass-card-header" style="flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
     <div class="card-title">
       <i class="fa-solid fa-network-wired" style="color: var(--cyan);"></i> Connected Network Peers (<%= count %>)
     </div>
-    <span class="badge badge-success">P2P Network Active</span>
+    
+    <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+      <button class="btn btn-sm btn-primary" id="btnCopyPlain" onclick="copyAllNodes('plain')">
+        <i class="fa-solid fa-copy"></i> Copy Nodes (<code style="background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; color: #fff; font-size: 0.78rem;">addnode=ip</code>)
+      </button>
+      <button class="btn btn-sm btn-outline" id="btnCopyPort" onclick="copyAllNodes('port')">
+        <i class="fa-solid fa-network-wired"></i> Copy with Port (<code style="background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px; color: #38bdf8; font-size: 0.78rem;">:<%= p2pPort %></code>)
+      </button>
+      <button class="btn btn-sm btn-outline" onclick="openNodeModal()">
+        <i class="fa-solid fa-file-code"></i> View .conf Guide
+      </button>
+      <span class="badge badge-success"><span class="pulse-dot"></span> P2P Active</span>
+    </div>
+  </div>
+
+  <!-- Dynamic Copy Notification Toast -->
+  <div id="copyToast" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #6ee7b7; padding: 0.85rem 1.25rem; border-radius: 10px; margin-bottom: 1.25rem; font-size: 0.88rem; align-items: center; justify-content: space-between; transition: all 0.3s ease;">
+    <div style="display: flex; align-items: center; gap: 0.65rem;">
+      <i class="fa-solid fa-circle-check" style="font-size: 1.15rem; color: #10b981;"></i>
+      <span id="copyToastMsg">Copied active nodes to clipboard!</span>
+    </div>
+    <button type="button" onclick="hideToast()" style="background: none; border: none; color: #6ee7b7; cursor: pointer; font-size: 1.1rem; padding: 0 4px;"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
   <div class="table-responsive">
     <table class="custom-table">
       <thead>
         <tr>
-          <th>Peer IP & Port</th>
+          <th>Peer IP &amp; Port</th>
           <th>Subversion / Client</th>
           <th>Protocol</th>
           <th>Ping</th>
@@ -26,7 +47,14 @@
         <% } else { %>
           <% peers.forEach(p => { %>
             <tr>
-              <td class="mono" style="font-weight: 600; color: #fff;"><%= p.addr %></td>
+              <td class="mono" style="font-weight: 600; color: #fff;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: space-between; min-width: 190px;">
+                  <span><%= p.addr %></span>
+                  <button type="button" class="btn btn-sm btn-outline" style="padding: 2px 7px; font-size: 0.72rem; line-height: 1.2;" title="Copy addnode=<%= p.ip %>" onclick="copySingleNode('<%= p.ip %>')">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+              </td>
               <td><span class="badge badge-cyan"><%= p.subver %></span></td>
               <td><%= p.version %></td>
               <td style="color: #34d399;"><%= p.ping %></td>
@@ -39,5 +67,185 @@
     </table>
   </div>
 </div>
+
+<!-- Configuration Helper Modal -->
+<div id="nodeModal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) closeNodeModal();">
+  <div class="modal-card" style="max-width: 650px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.75rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.85rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+      <div style="display: flex; align-items: center; gap: 0.65rem;">
+        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(16, 185, 129, 0.3);">
+          <i class="fa-solid fa-file-code" style="color: #10b981; font-size: 1.15rem;"></i>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #fff;"><%= coin.name %> Node Peers (<%= coin.symbol.toLowerCase() %>coin.conf)</h3>
+          <span style="font-size: 0.78rem; color: #94a3b8;">Direct configuration lines for fast wallet synchronization</span>
+        </div>
+      </div>
+      <button type="button" onclick="closeNodeModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.25rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.5;">
+      If your wallet or daemon shows <strong>0 connections</strong> or is stuck waiting for sync, paste these <code>addnode</code> lines into your <code><%= coin.symbol.toLowerCase() %>coin.conf</code> file and restart your wallet:
+    </p>
+
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <button type="button" class="btn btn-sm btn-primary" id="modalFormatPlain" onclick="setModalFormat('plain')">Format: addnode=ip (Standard)</button>
+      <button type="button" class="btn btn-sm btn-outline" id="modalFormatPort" onclick="setModalFormat('port')">Format: addnode=ip:<%= p2pPort %> (With Port)</button>
+    </div>
+
+    <div style="position: relative;">
+      <textarea id="modalNodesTextarea" readonly rows="9" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; background: #080d1a; color: #38bdf8; line-height: 1.6; resize: vertical; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; width: 100%; padding: 0.75rem;" onclick="this.select();"></textarea>
+    </div>
+
+    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.85rem; margin-top: 1rem; font-size: 0.78rem; color: #94a3b8;">
+      <strong style="color: #fff;"><i class="fa-solid fa-folder-open"></i> Configuration File Locations:</strong>
+      <div style="margin-top: 0.35rem; line-height: 1.6;">
+        <div>• <strong>Windows:</strong> <code>%APPDATA%\<%= coin.name %>\<%= coin.symbol.toLowerCase() %>coin.conf</code></div>
+        <div>• <strong>Linux:</strong> <code>~/.<%= coin.symbol.toLowerCase() %>coincore/<%= coin.symbol.toLowerCase() %>coin.conf</code> or <code>~/.<%= coin.symbol.toLowerCase() %>coin/</code></div>
+        <div>• <strong>macOS:</strong> <code>~/Library/Application Support/<%= coin.name %>/<%= coin.symbol.toLowerCase() %>coin.conf</code></div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+      <button type="button" class="btn btn-outline" onclick="closeNodeModal()">Close</button>
+      <button type="button" class="btn btn-primary" id="btnModalCopy" onclick="copyModalContent()">
+        <i class="fa-solid fa-copy"></i> Copy to Clipboard
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const P2P_PORT = "<%= p2pPort %>";
+  const PEER_IPS = <%- JSON.stringify(Array.from(new Set(peers.map(p => p.ip).filter(ip => ip && ip !== '127.0.0.1' && ip !== 'localhost' && ip !== '::1')))) %>;
+
+  let currentModalFormat = 'plain';
+  let toastTimer = null;
+
+  function getNodeList(format) {
+    if (!PEER_IPS || PEER_IPS.length === 0) return '';
+    return PEER_IPS.map(ip => {
+      return format === 'port' ? ('addnode=' + ip + ':' + P2P_PORT) : ('addnode=' + ip);
+    }).join('\n');
+  }
+
+  function copyToClipboard(text, onSuccess) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text, onSuccess));
+    } else {
+      fallbackCopy(text, onSuccess);
+    }
+  }
+
+  function fallbackCopy(text, onSuccess) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      document.execCommand('copy');
+      if (onSuccess) onSuccess();
+    } catch (e) {
+      console.error('Fallback copy failed', e);
+    }
+    document.body.removeChild(ta);
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('copyToast');
+    const toastMsg = document.getElementById('copyToastMsg');
+    if (!toast) return;
+    toastMsg.textContent = msg;
+    toast.style.display = 'flex';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.style.display = 'none';
+    }, 4500);
+  }
+
+  function hideToast() {
+    const toast = document.getElementById('copyToast');
+    if (toast) toast.style.display = 'none';
+    if (toastTimer) clearTimeout(toastTimer);
+  }
+
+  function copyAllNodes(format) {
+    const text = getNodeList(format);
+    if (!text) {
+      showToast('No active peer nodes found to copy.');
+      return;
+    }
+    const btnId = format === 'port' ? 'btnCopyPort' : 'btnCopyPlain';
+    const btn = document.getElementById(btnId);
+    const origHtml = btn ? btn.innerHTML : '';
+
+    copyToClipboard(text, () => {
+      showToast('Copied ' + PEER_IPS.length + ' active nodes to clipboard! Paste directly into your <%= coin.symbol.toLowerCase() %>coin.conf file.');
+      if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
+      }
+    });
+  }
+
+  function copySingleNode(ip) {
+    const line = 'addnode=' + ip;
+    copyToClipboard(line, () => {
+      showToast('Copied single node: ' + line);
+    });
+  }
+
+  function openNodeModal() {
+    const modal = document.getElementById('nodeModal');
+    if (modal) {
+      setModalFormat(currentModalFormat);
+      modal.style.display = 'flex';
+    }
+  }
+
+  function closeNodeModal() {
+    const modal = document.getElementById('nodeModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function setModalFormat(format) {
+    currentModalFormat = format;
+    const textarea = document.getElementById('modalNodesTextarea');
+    const btnPlain = document.getElementById('modalFormatPlain');
+    const btnPort = document.getElementById('modalFormatPort');
+
+    if (textarea) textarea.value = getNodeList(format);
+    if (format === 'plain') {
+      if (btnPlain) { btnPlain.className = 'btn btn-sm btn-primary'; }
+      if (btnPort) { btnPort.className = 'btn btn-sm btn-outline'; }
+    } else {
+      if (btnPlain) { btnPlain.className = 'btn btn-sm btn-outline'; }
+      if (btnPort) { btnPort.className = 'btn btn-sm btn-primary'; }
+    }
+  }
+
+  function copyModalContent() {
+    const textarea = document.getElementById('modalNodesTextarea');
+    const btn = document.getElementById('btnModalCopy');
+    if (!textarea || !textarea.value) return;
+
+    copyToClipboard(textarea.value, () => {
+      showToast('Copied ' + PEER_IPS.length + ' active nodes to clipboard!');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeNodeModal();
+  });
+</script>
 
 <%- include('partials/footer') %>
