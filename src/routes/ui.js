@@ -581,11 +581,12 @@ router.get('/orphans', async (req, res) => {
 // 11. Market (/market) - Clean display only, no public config
 router.get('/market', async (req, res) => {
   try {
-    const [priceData, exchanges, height] = await Promise.all([
-      market.fetchPrice(),
-      market.getExchangesList(),
+    const [marketData, height] = await Promise.all([
+      market.getMarketData(),
       rpc.getBlockCount().catch(() => 0),
     ]);
+
+    const { price: priceData, exchanges } = marketData;
 
     const supply = calculateMoneySupply(height);
     const priceUsd = parseFloat(priceData.last_price_usd || 0);

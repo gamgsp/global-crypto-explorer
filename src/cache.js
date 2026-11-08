@@ -1,4 +1,5 @@
-const { LRUCache } = require('lru-cache');
+const rawLru = require('lru-cache');
+const LRUCache = rawLru.LRUCache || rawLru;
 
 // Blocks are immutable once deeply confirmed
 const blockCache = new LRUCache({

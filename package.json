@@ -1,6 +1,6 @@
 {
   "name": "global-crypto-explorer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Universal, high-performance, direct-RPC blockchain explorer for Bitcoin, Dash, PIVX & forks with embedded SQLite caching, Web Admin Panel, Masternodes tracker, and automated setup.",
   "main": "src/server.js",
   "scripts": {

@@ -71,10 +71,10 @@
                 </span>
               </td>
               <td class="mono" style="font-weight: 600; color: #4ade80;">
-                $<%= (ex.last_price && ex.last_price > 0) ? ex.last_price.toFixed(8) : '0.00000000' %>
+                $<%= (ex.last_price && ex.last_price > 0) ? (ex.last_price < 0.01 ? Number(ex.last_price).toFixed(8) : Number(ex.last_price).toFixed(4)) : '0.00000000' %>
               </td>
               <td class="mono" style="color: var(--text-muted);">
-                $<%= (ex.volume_24h || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) %>
+                $<%= Number(ex.volume_24h || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
               </td>
               <td>
                 <% if (ex.pair_url) { %>
