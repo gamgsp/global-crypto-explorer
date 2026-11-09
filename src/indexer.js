@@ -98,9 +98,15 @@ async function fastBootstrapChartHistory(tip, targetDays = 35) {
 // 2. Early Whale Movements & Genesis Distribution Bootstrap (Blocks 1 to 500)
 // Indexes all premine / whale transactions (each with 5,000,000 GSPC) into txs table and addresses table
 async function bootstrapWhaleMovements(tip) {
+  const bootstrapped = db.getSetting('whale_movements_bootstrapped');
+  if (bootstrapped === '1') {
+    return;
+  }
+
   const whaleCountRow = db.db.prepare('SELECT COUNT(1) as c FROM txs WHERE total_out >= 1000000').get();
-  if (whaleCountRow && whaleCountRow.c >= 50) {
-    return; // Already populated
+  if (whaleCountRow && whaleCountRow.c >= 20) {
+    db.stmts.setSetting.run('whale_movements_bootstrapped', '1');
+    return;
   }
 
   const endH = Math.min(500, tip);
@@ -183,6 +189,7 @@ async function bootstrapWhaleMovements(tip) {
   if (addressesToQuery.size > 0) {
     await fetchAndSaveAddressBalances(Array.from(addressesToQuery));
   }
+  db.stmts.setSetting.run('whale_movements_bootstrapped', '1');
   console.log(`[Indexer] Whale Movements bootstrap complete.`);
 }
 
