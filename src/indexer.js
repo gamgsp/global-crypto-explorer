@@ -3,6 +3,17 @@ const db = require('./db');
 
 let isIndexing = false;
 
+function extractAddresses(scriptPubKey) {
+  if (!scriptPubKey) return [];
+  if (Array.isArray(scriptPubKey.addresses)) {
+    return scriptPubKey.addresses.filter(a => typeof a === 'string' && a.length >= 26);
+  }
+  if (typeof scriptPubKey.address === 'string' && scriptPubKey.address.length >= 26) {
+    return [scriptPubKey.address];
+  }
+  return [];
+}
+
 // Query daemon RPC getaddressbalance for exact LevelDB ground-truth
 async function fetchAndSaveAddressBalances(addressList) {
   if (!addressList || addressList.length === 0) return;
@@ -122,11 +133,10 @@ async function bootstrapWhaleMovements(tip) {
               for (const out of tx.vout) {
                 const val = parseFloat(out.value || 0);
                 totalOut += val;
-                if (out.scriptPubKey && Array.isArray(out.scriptPubKey.addresses)) {
-                  for (const addr of out.scriptPubKey.addresses) {
-                    addressesToQuery.add(addr);
-                    db.recordAddressTx(addr, txid, b.height, val, 'COINBASE', b.time);
-                  }
+                const outAddrs = extractAddresses(out.scriptPubKey);
+                for (const addr of outAddrs) {
+                  addressesToQuery.add(addr);
+                  db.recordAddressTx(addr, txid, b.height, val, 'COINBASE', b.time);
                 }
               }
             }
@@ -204,11 +214,10 @@ async function indexRecentBlockRange(startHeight, endHeight) {
               for (const out of tx.vout) {
                 const val = parseFloat(out.value || 0);
                 totalOut += val;
-                if (out.scriptPubKey && Array.isArray(out.scriptPubKey.addresses)) {
-                  for (const addr of out.scriptPubKey.addresses) {
-                    addrs.add(addr);
-                    db.recordAddressTx(addr, txid, b.height, val, 'RECEIVED', b.time);
-                  }
+                const outAddrs = extractAddresses(out.scriptPubKey);
+                for (const addr of outAddrs) {
+                  addrs.add(addr);
+                  db.recordAddressTx(addr, txid, b.height, val, 'RECEIVED', b.time);
                 }
               }
             }
@@ -326,18 +335,93 @@ async function syncPeriodicMinute() {
   }
 }
 
+// Synchronize all Smartnodes into addresses table with their exact LevelDB balances
+async function syncSmartnodes() {
+  try {
+    const rawList = await rpc.getMasternodeList('full').catch(() => ({}));
+    const mnAddrs = new Set();
+    for (const v of Object.values(rawList)) {
+      if (typeof v === 'string') {
+        const match = v.match(/G[a-zA-Z0-9]{33}/);
+        if (match) mnAddrs.add(match[0]);
+      }
+    }
+    if (mnAddrs.size > 0) {
+      console.log(`[Indexer] Synchronizing ${mnAddrs.size} smartnode addresses into addresses index...`);
+      await fetchAndSaveAddressBalances(Array.from(mnAddrs));
+    }
+  } catch (err) {
+    console.error('[Indexer] Smartnode sync error:', err.message);
+  }
+}
+
+// Gentle background backfill for unindexed addresses so their history is ready
+async function backfillUnindexedAddresses(limit = 10) {
+  try {
+    const unindexed = db.db.prepare('SELECT address, balance, received, sent FROM addresses WHERE tx_count = 0 LIMIT ?').all(limit);
+    if (!unindexed || unindexed.length === 0) return;
+
+    for (const row of unindexed) {
+      try {
+        const deltas = await rpc.getAddressDeltas(row.address);
+        if (Array.isArray(deltas) && deltas.length > 0) {
+          const txMap = new Map();
+          for (const d of deltas) {
+            if (!txMap.has(d.txid)) {
+              txMap.set(d.txid, {
+                address: row.address,
+                txid: d.txid,
+                blockheight: d.height,
+                satoshis: 0,
+                time: 0,
+              });
+            }
+            txMap.get(d.txid).satoshis += d.satoshis;
+          }
+
+          const items = [];
+          for (const it of txMap.values()) {
+            items.push({
+              address: row.address,
+              txid: it.txid,
+              blockheight: it.blockheight,
+              amount: Math.abs(it.satoshis) / 1e8,
+              type: it.satoshis < 0 ? 'SENT' : 'RECEIVED',
+              time: 0,
+            });
+          }
+
+          if (items.length > 0) {
+            db.insertAddressTxBatch(items);
+          }
+          db.saveAddressBalance(row.address, row.balance, row.received, row.sent, txMap.size);
+        } else {
+          db.saveAddressBalance(row.address, row.balance, row.received, row.sent, 1);
+        }
+      } catch (e) {}
+    }
+  } catch (err) {}
+}
+
 function startIndexer() {
   syncBlockchain();
+  syncSmartnodes();
   // Fast 10-second check for newly mined blocks
   setInterval(syncBlockchain, 10000);
   // Mandatory 1-minute full RPC sync: blocks, gap check & address balance verification
   setInterval(syncPeriodicMinute, 60000);
+  // Periodic smartnode refresh every 5 minutes
+  setInterval(syncSmartnodes, 300000);
+  // Gentle background backfill of unindexed addresses every 20 seconds
+  setInterval(() => backfillUnindexedAddresses(10), 20000);
 }
 
 module.exports = {
   startIndexer,
   syncBlockchain,
   syncPeriodicMinute,
+  syncSmartnodes,
+  backfillUnindexedAddresses,
   fastBootstrapChartHistory,
   bootstrapWhaleMovements,
   indexRecentBlockRange,

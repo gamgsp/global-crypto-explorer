@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const rpc = require('../rpc');
+const db = require('../db');
 const { calculateMoneySupply } = require('../supply');
 const { fetchPrice } = require('../market');
 const { dynamicCache, addressCache } = require('../cache');
@@ -60,14 +61,17 @@ router.get('/getaddress/:hash', async (req, res) => {
     try {
       const deltas = await rpc.getAddressDeltas(address);
       if (Array.isArray(deltas)) {
-        lastTxs = deltas.slice(-50).reverse().map(d => ({
-          addresses: address,
-          type: d.satoshis > 0 ? 'vout' : 'vin',
-          timestamp: d.timestamp || Math.floor(Date.now() / 1000),
-          amount: Math.abs(d.satoshis),
-          txid: d.txid,
-          blockindex: d.height,
-        }));
+        lastTxs = deltas.slice(-50).reverse().map(d => {
+          const blkTime = db.getBlock(d.height)?.time;
+          return {
+            addresses: address,
+            type: d.satoshis > 0 ? 'vout' : 'vin',
+            timestamp: blkTime || d.timestamp || Math.floor(Date.now() / 1000),
+            amount: Math.abs(d.satoshis),
+            txid: d.txid,
+            blockindex: d.height,
+          };
+        });
       }
     } catch {
       // If address index is not available
@@ -96,14 +100,17 @@ router.get('/getaddresstxs/:hash/:start/:length', async (req, res) => {
     const l = Math.min(parseInt(length, 10) || 50, 100);
 
     const deltas = await rpc.getAddressDeltas(hash);
-    const sliced = (Array.isArray(deltas) ? deltas.slice(s, s + l) : []).map(d => ({
-      addresses: hash,
-      type: d.satoshis > 0 ? 'vout' : 'vin',
-      timestamp: d.timestamp || Math.floor(Date.now() / 1000),
-      amount: Math.abs(d.satoshis),
-      txid: d.txid,
-      blockindex: d.height,
-    }));
+    const sliced = (Array.isArray(deltas) ? deltas.slice(s, s + l) : []).map(d => {
+      const blkTime = db.getBlock(d.height)?.time;
+      return {
+        addresses: hash,
+        type: d.satoshis > 0 ? 'vout' : 'vin',
+        timestamp: blkTime || d.timestamp || Math.floor(Date.now() / 1000),
+        amount: Math.abs(d.satoshis),
+        txid: d.txid,
+        blockindex: d.height,
+      };
+    });
 
     res.json(sliced);
   } catch (err) {

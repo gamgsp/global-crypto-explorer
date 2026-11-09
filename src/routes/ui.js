@@ -261,7 +261,7 @@ router.get('/tx/:hash', async (req, res) => {
   }
 });
 
-// 4. Address Details (/address/:hash) - High Speed Indexed Lookup with Pagination
+// 4. Address Details (/address/:hash) - High Speed Indexed Lookup with Real-Time RPC Sync & Pagination
 router.get('/address/:hash', async (req, res) => {
   try {
     const address = (req.params.hash || '').trim();
@@ -281,43 +281,127 @@ router.get('/address/:hash', async (req, res) => {
     let balance = '0.00000000';
     let received = '0.00000000';
     let sent = '0.00000000';
+    let balCoins = 0;
+    let recCoins = 0;
+    let sentCoins = 0;
 
     // 1. Direct native RPC balance (<10ms)
     try {
       const balData = await rpc.getAddressBalance(address);
       if (balData && typeof balData.balance === 'number') {
-        const balCoins = balData.balance / 1e8;
-        const recCoins = (balData.received || 0) / 1e8;
-        const sentCoins = Math.max(0, recCoins - balCoins);
+        balCoins = balData.balance / 1e8;
+        recCoins = (balData.received || 0) / 1e8;
+        sentCoins = Math.max(0, recCoins - balCoins);
 
         balance = balCoins.toFixed(8);
         received = recCoins.toFixed(8);
         sent = sentCoins.toFixed(8);
-
-        db.saveAddressBalance(address, balCoins, recCoins, sentCoins, 0);
       }
     } catch (e) {
       // fallback to SQLite cache
       const dbAddr = db.getAddress(address);
       if (dbAddr) {
-        balance = (dbAddr.balance || 0).toFixed(8);
-        received = (dbAddr.received || 0).toFixed(8);
-        sent = (dbAddr.sent || 0).toFixed(8);
+        balCoins = dbAddr.balance || 0;
+        recCoins = dbAddr.received || 0;
+        sentCoins = dbAddr.sent || 0;
+        balance = balCoins.toFixed(8);
+        received = recCoins.toFixed(8);
+        sent = sentCoins.toFixed(8);
       }
     }
 
-    // 2. High-speed SQLite pagination (20 per page)
+    const dbAddr = db.getAddress(address);
+    let totalTxs = db.getAddressTransactionCount(address);
+
+    // 2. Real-Time Transaction Sync via getaddressdeltas
+    // If transactions are not yet indexed in SQLite, or new transactions detected
+    const needsSync = (totalTxs === 0 && (recCoins > 0 || balCoins > 0)) ||
+                      (dbAddr && (dbAddr.balance !== balCoins || dbAddr.received !== recCoins)) ||
+                      (dbAddr && dbAddr.tx_count > totalTxs);
+
+    if (needsSync) {
+      try {
+        const deltas = await rpc.getAddressDeltas(address);
+        if (Array.isArray(deltas) && deltas.length > 0) {
+          const txMap = new Map();
+          for (const d of deltas) {
+            if (!txMap.has(d.txid)) {
+              txMap.set(d.txid, {
+                address: address,
+                txid: d.txid,
+                blockheight: d.height,
+                satoshis: 0,
+                time: 0,
+              });
+            }
+            txMap.get(d.txid).satoshis += d.satoshis;
+          }
+
+          const itemsToInsert = [];
+          for (const it of txMap.values()) {
+            itemsToInsert.push({
+              address: address,
+              txid: it.txid,
+              blockheight: it.blockheight,
+              amount: Math.abs(it.satoshis) / 1e8,
+              type: it.satoshis < 0 ? 'SENT' : 'RECEIVED',
+              time: 0,
+            });
+          }
+
+          if (itemsToInsert.length > 0) {
+            db.insertAddressTxBatch(itemsToInsert);
+          }
+          totalTxs = txMap.size;
+        }
+      } catch (err) {
+        console.error(`[Address Sync] Error fetching deltas for ${address}:`, err.message);
+      }
+    }
+
+    totalTxs = Math.max(totalTxs, db.getAddressTransactionCount(address));
+    if (dbAddr && dbAddr.tx_count > totalTxs) {
+      totalTxs = dbAddr.tx_count;
+    }
+    db.saveAddressBalance(address, balCoins, recCoins, sentCoins, totalTxs);
+
+    // 3. High-speed SQLite pagination (20 per page)
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = 20;
     const offset = (page - 1) * limit;
 
     const dbTxs = db.getAddressTransactions(address, limit, offset);
-    let totalTxs = db.getAddressTransactionCount(address);
-    const dbAddr = db.getAddress(address);
-    if (dbAddr && dbAddr.tx_count > totalTxs) {
-      totalTxs = dbAddr.tx_count;
-    }
     const totalPages = Math.max(1, Math.ceil(totalTxs / limit));
+
+    // Resolve timestamps for current page items if needed
+    const missingHeights = [...new Set((dbTxs || []).filter(t => !t.time || t.time === 0).map(t => t.blockheight))];
+    if (missingHeights.length > 0) {
+      await Promise.all(missingHeights.map(async (ht) => {
+        try {
+          let blkTime = db.getBlock(ht)?.time;
+          if (!blkTime) {
+            const rpcBlk = await rpc.getBlock(ht, 1);
+            if (rpcBlk && rpcBlk.time) {
+              blkTime = rpcBlk.time;
+              db.insertBlock({
+                height: rpcBlk.height,
+                hash: rpcBlk.hash,
+                time: rpcBlk.time,
+                tx_count: Array.isArray(rpcBlk.tx) ? rpcBlk.tx.length : 0,
+                size: rpcBlk.size || 0,
+                difficulty: rpcBlk.difficulty || 0,
+              });
+            }
+          }
+          if (blkTime) {
+            db.updateAddressTxTime(ht, blkTime);
+            for (const t of dbTxs) {
+              if (t.blockheight === ht) t.time = blkTime;
+            }
+          }
+        } catch (e) {}
+      }));
+    }
 
     const txs = (dbTxs || []).map(t => ({
       txid: t.txid,
@@ -325,8 +409,8 @@ router.get('/address/:hash', async (req, res) => {
       type: t.type || 'RECEIVED',
       amount: (t.amount || 0).toFixed(8),
       time: t.time,
-      age: Math.max(0, Math.floor(Date.now() / 1000 - t.time)),
-      formattedAge: formatAge(t.time),
+      age: t.time ? Math.max(0, Math.floor(Date.now() / 1000 - t.time)) : 'N/A',
+      formattedAge: t.time ? formatAge(t.time) : 'N/A',
     }));
 
     res.render('address', {

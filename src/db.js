@@ -103,11 +103,14 @@ const stmts = {
       balance = @balance,
       received = MAX(addresses.received, @received),
       sent = MAX(addresses.sent, @sent),
-      tx_count = addresses.tx_count + @tx_count
+      tx_count = CASE WHEN @tx_count > addresses.tx_count THEN @tx_count ELSE addresses.tx_count END
   `),
   insertAddressTx: db.prepare(`
     INSERT OR REPLACE INTO address_txs (address, txid, blockheight, amount, type, time)
     VALUES (@address, @txid, @blockheight, @amount, @type, @time)
+  `),
+  updateAddressTxTime: db.prepare(`
+    UPDATE address_txs SET time = ? WHERE blockheight = ? AND (time = 0 OR time IS NULL)
   `),
   getAddress: db.prepare('SELECT * FROM addresses WHERE address = ?'),
   getAddressTxs: db.prepare('SELECT DISTINCT txid, blockheight, amount, type, time FROM address_txs WHERE address = ? ORDER BY blockheight DESC LIMIT ? OFFSET ?'),
@@ -141,6 +144,12 @@ const insertTxBatch = db.transaction((txList) => {
   }
 });
 
+const insertAddressTxBatch = db.transaction((items) => {
+  for (const it of items) {
+    stmts.insertAddressTx.run(it);
+  }
+});
+
 const saveSettingsBatch = db.transaction((entries) => {
   for (const [k, v] of Object.entries(entries)) {
     stmts.setSetting.run(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
@@ -152,6 +161,7 @@ module.exports = {
   stmts,
   insertBlockBatch,
   insertTxBatch,
+  insertAddressTxBatch,
 
   // Settings API
   getSetting(key, defaultValue = null) {
@@ -294,14 +304,23 @@ module.exports = {
       },
     };
   },
-  saveAddressBalance(address, balance, received = 0, sent = 0, txIncrement = 1) {
+  saveAddressBalance(address, balance, received = 0, sent = 0, txCount = 0) {
     stmts.upsertAddress.run({
       address,
       balance,
       received: received || balance,
       sent,
-      tx_count: txIncrement,
+      tx_count: txCount,
     });
+  },
+  insertAddressTxBatch(items) {
+    return insertAddressTxBatch(items);
+  },
+  updateAddressTxTime(height, time) {
+    return stmts.updateAddressTxTime.run(time, height);
+  },
+  insertBlock(b) {
+    return stmts.insertBlock.run(b);
   },
   recordAddressTx(address, txid, blockheight, amount, type, time) {
     stmts.insertAddressTx.run({
